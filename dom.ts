@@ -1,0 +1,341 @@
+// dom.ts
+
+// Using getters to ensure the DOM is loaded before the element is accessed.
+export const DOMElements = {
+    // --- GLOBAL & LAYOUT ---
+    get pageContainer() { return document.getElementById('page-container'); },
+
+    // --- HEADER & AUTH ---
+    get trackBtn() { return document.getElementById('track-btn') as HTMLButtonElement; },
+
+    // --- AUTH MODAL ---
+    get authModal() { return document.getElementById('auth-modal') as HTMLDivElement; },
+    get closeAuthModalBtn() { return document.getElementById('close-auth-modal-btn') as HTMLButtonElement; },
+    get loginView() { return document.getElementById('login-view') as HTMLDivElement; },
+    get signupView() { return document.getElementById('signup-view') as HTMLDivElement; },
+    get loginToggleText() { return document.getElementById('login-toggle-text') as HTMLDivElement; },
+    get signupToggleText() { return document.getElementById('signup-toggle-text') as HTMLDivElement; },
+    get showSignupBtn() { return document.getElementById('show-signup-btn') as HTMLButtonElement; },
+    get showLoginBtn() { return document.getElementById('show-login-btn') as HTMLButtonElement; },
+    get loginForm() { return document.getElementById('login-form') as HTMLFormElement; },
+    get signupForm() { return document.getElementById('signup-form') as HTMLFormElement; },
+    get loginEmail() { return document.getElementById('login-email') as HTMLInputElement; },
+    get signupName() { return document.getElementById('signup-name') as HTMLInputElement; },
+    get signupEmail() { return document.getElementById('signup-email') as HTMLInputElement; },
+    get googleLoginBtn() { return document.querySelector('.google-login-btn') as HTMLButtonElement; },
+    get appleLoginBtn() { return document.querySelector('.apple-login-btn') as HTMLButtonElement; },
+
+    // --- TRACKING MODAL ---
+    get trackingModal() { return document.getElementById('tracking-modal') as HTMLDivElement; },
+    get closeTrackingModalBtn() { return document.getElementById('close-tracking-modal-btn') as HTMLButtonElement; },
+    get trackingForm() { return document.getElementById('tracking-form') as HTMLFormElement; },
+    get trackingIdInput() { return document.getElementById('tracking-id-input') as HTMLInputElement; },
+
+    // --- COMPLIANCE/INSPECTOR MODAL ---
+    get inspectorModal() { return document.getElementById('inspector-modal') as HTMLDivElement; },
+    get closeInspectorModalBtn() { return document.getElementById('close-inspector-modal-btn') as HTMLButtonElement; },
+    
+    // --- SHIPPING AGREEMENT MODAL (BAGGAGE) ---
+    get shippingAgreementModal() { return document.getElementById('shipping-agreement-modal') as HTMLDivElement; },
+    get closeShippingAgreementModalBtn() { return document.getElementById('close-shipping-agreement-modal-btn') as HTMLButtonElement; },
+    get shippingAgreementCheckbox() { return document.getElementById('shipping-agreement-checkbox') as HTMLInputElement; },
+    get shippingAgreementProceedBtn() { return document.getElementById('shipping-agreement-proceed-btn') as HTMLButtonElement; },
+    get downloadShippingAgreementPdfBtn() { return document.getElementById('download-shipping-agreement-pdf-btn') as HTMLButtonElement; },
+
+    // --- GPS TRACKER MODAL (BAGGAGE) ---
+    get trackingDeviceModal() { return document.getElementById('tracking-device-modal') as HTMLDivElement; },
+    get closeTrackingDeviceModalBtn() { return document.getElementById('close-tracking-device-modal-btn') as HTMLButtonElement; },
+
+    // --- PAGES ---
+    get pageLanding() { return document.getElementById('page-landing'); },
+    get pageDashboard() { return document.getElementById('page-dashboard'); },
+    get pageAddressBook() { return document.getElementById('page-address-book'); },
+    get pageSettings() { return document.getElementById('page-settings'); },
+    get pageHelp() { return document.getElementById('page-help'); },
+    get pageApiHub() { return document.getElementById('page-api-hub'); },
+    get pagePrivacy() { return document.getElementById('page-privacy'); },
+    get pageTerms() { return document.getElementById('page-terms'); },
+    get pagePayment() { return document.getElementById('page-payment'); },
+    get pageConfirmation() { return document.getElementById('page-confirmation'); },
+    get pageResults() { return document.getElementById('page-results'); },
+    
+
+    // --- SERVICE-SPECIFIC ELEMENTS ---
+    parcel: {
+        get quotesContainer() { return document.getElementById('parcel-quotes-container'); },
+        get warningsContainer() { return document.getElementById('parcel-warnings-container'); },
+    },
+    
+    ecommerce: {
+        get productGrid() { return document.getElementById('ecom-product-grid') as HTMLDivElement; },
+        get emptyState() { return document.getElementById('ecom-empty-state') as HTMLDivElement; },
+        get wizardContainer() { return document.getElementById('ecom-wizard-container') as HTMLFormElement; },
+        get specsList() { return document.getElementById('ecom-specs-list') as HTMLUListElement; },
+        get publishSuccess() { return document.getElementById('ecom-publish-success') as HTMLDivElement; },
+        get nextBtn() { return document.getElementById('ecom-next-btn') as HTMLButtonElement; },
+        get prevBtn() { return document.getElementById('ecom-prev-btn') as HTMLButtonElement; },
+        get productTypeSelector() { return document.getElementById('ecom-product-type-selector') as HTMLDivElement; },
+        get physicalProductFields() { return document.getElementById('ecom-physical-product-fields') as HTMLDivElement; },
+        get externalProductFields() { return document.getElementById('ecom-external-product-fields') as HTMLDivElement; },
+        get reviewPane() { return document.getElementById('ecom-review-pane') as HTMLDivElement; },
+        get productName() { return document.getElementById('ecom-product-name') as HTMLInputElement; },
+        get productDescription() { return document.getElementById('ecom-product-description') as HTMLTextAreaElement; },
+        get productCategory() { return document.getElementById('ecom-product-category') as HTMLInputElement; },
+        get productBrand() { return document.getElementById('ecom-product-brand') as HTMLInputElement; },
+        get productStock() { return document.getElementById('ecom-product-stock') as HTMLInputElement; },
+        get productPrice() { return document.getElementById('ecom-product-price') as HTMLInputElement; },
+        get productLink() { return document.getElementById('product-link') as HTMLInputElement; },
+        get listProductCtaHero() { return document.getElementById('ecom-list-product-cta-hero') as HTMLButtonElement; },
+        get addNewFromEmptyBtn() { return document.getElementById('ecom-add-new-from-empty-btn') as HTMLButtonElement; },
+        get addSpecBtn() { return document.getElementById('add-spec-btn') as HTMLButtonElement; },
+        get listAnotherProductBtn() { return document.getElementById('list-another-product-btn') as HTMLButtonElement; },
+        get successTitle() { return document.getElementById('ecom-success-title') as HTMLHeadingElement; },
+    },
+    
+    fcl: {
+        get quoteForm() { return document.getElementById('fcl-quote-form') as HTMLFormElement; },
+        get containerList() { return document.getElementById('fcl-container-list') as HTMLDivElement; },
+        get pickupAddressFields() { return document.getElementById('fcl-pickup-address-fields') as HTMLDivElement; },
+        get pickupLocationFields() { return document.getElementById('fcl-pickup-location-fields') as HTMLDivElement; },
+        get deliveryAddressFields() { return document.getElementById('fcl-delivery-address-fields') as HTMLDivElement; },
+        get deliveryLocationFields() { return document.getElementById('fcl-delivery-location-fields') as HTMLDivElement; },
+        get pickupName() { return document.getElementById('fcl-pickup-name') as HTMLInputElement; },
+        get pickupCountry() { return document.getElementById('fcl-pickup-country') as HTMLInputElement; },
+        get pickupPortInput() { return document.getElementById('fcl-pickup-port') as HTMLInputElement; },
+        get deliveryName() { return document.getElementById('fcl-delivery-name') as HTMLInputElement; },
+        get deliveryCountry() { return document.getElementById('fcl-delivery-country') as HTMLInputElement; },
+        get deliveryPortInput() { return document.getElementById('fcl-delivery-port') as HTMLInputElement; },
+        get cargoDescription() { return document.getElementById('fcl-cargo-description') as HTMLTextAreaElement; },
+        get hsCodeInput() { return document.getElementById('fcl-hs-code') as HTMLInputElement; },
+        get confirmationTitle() { return document.getElementById('fcl-confirmation-title') as HTMLHeadingElement; },
+        get confirmationMessage() { return document.getElementById('fcl-confirmation-message') as HTMLParagraphElement; },
+        nav: {
+            get backToDetails() { return document.getElementById('fcl-back-to-details-btn') as HTMLButtonElement; },
+            get toAgreement() { return document.getElementById('fcl-to-agreement-btn') as HTMLButtonElement; },
+            get backToCompliance() { return document.getElementById('fcl-back-to-compliance-btn') as HTMLButtonElement; },
+            get toPayment() { return document.getElementById('fcl-to-payment-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('fcl-new-shipment-btn') as HTMLButtonElement; },
+            get downloadDocs() { return document.getElementById('fcl-download-docs-btn') as HTMLButtonElement; },
+        }
+    },
+
+    lcl: {
+        get detailsForm() { return document.getElementById('lcl-details-form') as HTMLFormElement; },
+        get cargoDescription() { return document.getElementById('lcl-cargo-description') as HTMLTextAreaElement; },
+        get hsCodeInput() { return document.getElementById('lcl-hs-code') as HTMLInputElement; },
+        get suggestHsCodeBtn() { return document.getElementById('lcl-suggest-hs-code-btn') as HTMLButtonElement; },
+        get cargoList() { return document.getElementById('lcl-cargo-list') as HTMLDivElement; },
+        get addCargoBtn() { return document.getElementById('lcl-add-cargo-btn') as HTMLButtonElement; },
+        get isStackable() { return document.getElementById('lcl-is-stackable') as HTMLInputElement; },
+        get isHazardous() { return document.getElementById('lcl-is-hazardous') as HTMLInputElement; },
+        get imdgClassContainer() { return document.getElementById('lcl-imdg-class-container') as HTMLDivElement; },
+        get totalCbm() { return document.getElementById('lcl-total-cbm'); },
+        get chargeableWeight() { return document.getElementById('lcl-chargeable-weight'); },
+        get fclSuggestion() { return document.getElementById('lcl-fcl-suggestion'); },
+        get paymentForm() { return document.getElementById('lcl-payment-form') as HTMLFormElement; },
+        steps: {
+            get details() { return document.getElementById('lcl-step-details'); },
+            get cargo() { return document.getElementById('lcl-step-cargo'); },
+            get service() { return document.getElementById('lcl-step-service'); },
+            get docs() { return document.getElementById('lcl-step-docs'); },
+            get quote() { return document.getElementById('lcl-step-quote'); },
+            get payment() { return document.getElementById('lcl-step-payment'); },
+            get confirmation() { return document.getElementById('lcl-step-confirmation'); },
+        },
+        nav: {
+            get backToDetails() { return document.getElementById('lcl-back-to-details-btn') as HTMLButtonElement; },
+            get toService() { return document.getElementById('lcl-to-service-btn') as HTMLButtonElement; },
+            get backToCargo() { return document.getElementById('lcl-back-to-cargo-btn') as HTMLButtonElement; },
+            get toDocs() { return document.getElementById('lcl-to-docs-btn') as HTMLButtonElement; },
+            get backToService() { return document.getElementById('lcl-back-to-service-btn') as HTMLButtonElement; },
+            get toQuote() { return document.getElementById('lcl-to-quote-btn') as HTMLButtonElement; },
+            get backToDocs() { return document.getElementById('lcl-back-to-docs-btn') as HTMLButtonElement; },
+            get toPayment() { return document.getElementById('lcl-to-payment-btn') as HTMLButtonElement; },
+            get backToQuote() { return document.getElementById('lcl-back-to-quote-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('lcl-new-shipment-btn') as HTMLButtonElement; },
+            get downloadLabels() { return document.getElementById('lcl-download-labels-btn') as HTMLButtonElement; },
+        }
+    },
+
+    vehicle: {
+        get detailsForm() { return document.getElementById('vehicle-details-form') as HTMLFormElement; },
+        get originPort() { return document.getElementById('vehicle-origin-port') as HTMLInputElement; },
+        get destPort() { return document.getElementById('vehicle-dest-port') as HTMLInputElement; },
+        get make() { return document.getElementById('vehicle-make') as HTMLInputElement; },
+        get model() { return document.getElementById('vehicle-model') as HTMLInputElement; },
+        get year() { return document.getElementById('vehicle-year') as HTMLInputElement; },
+        get condition() { return document.getElementById('vehicle-condition') as HTMLSelectElement; },
+        get canRoll() { return document.getElementById('vehicle-can-roll') as HTMLInputElement; },
+        get photoDropArea() { return document.getElementById('vehicle-photo-drop-area') as HTMLDivElement; },
+        get photoInput() { return document.getElementById('vehicle-photo-input') as HTMLInputElement; },
+        get length() { return document.getElementById('vehicle-length') as HTMLInputElement; },
+        get width() { return document.getElementById('vehicle-width') as HTMLInputElement; },
+        get height() { return document.getElementById('vehicle-height') as HTMLInputElement; },
+        get weight() { return document.getElementById('vehicle-weight') as HTMLInputElement; },
+        get shippingOptions() { return document.getElementById('vehicle-shipping-options') as HTMLDivElement; },
+        get quoteSummary() { return document.getElementById('vehicle-quote-summary') as HTMLDivElement; },
+        get complianceSummary() { return document.getElementById('vehicle-compliance-summary') as HTMLDivElement; },
+        get paymentForm() { return document.getElementById('vehicle-payment-form') as HTMLFormElement; },
+        get paymentOverview() { return document.getElementById('vehicle-payment-overview') as HTMLDivElement; },
+        get confirmationTitle() { return document.getElementById('vehicle-confirmation-title') as HTMLHeadingElement; },
+        get confirmationMessage() { return document.getElementById('vehicle-confirmation-message') as HTMLParagraphElement; },
+        nav: {
+            get backToDetails() { return document.getElementById('vehicle-back-to-details-btn') as HTMLButtonElement; },
+            get toMethod() { return document.getElementById('vehicle-to-method-btn') as HTMLButtonElement; },
+            get backToDims() { return document.getElementById('vehicle-back-to-dims-btn') as HTMLButtonElement; },
+            get toQuote() { return document.getElementById('vehicle-to-quote-btn') as HTMLButtonElement; },
+            get backToMethod() { return document.getElementById('vehicle-back-to-method-btn') as HTMLButtonElement; },
+            get toPayment() { return document.getElementById('vehicle-to-payment-btn') as HTMLButtonElement; },
+            get backToQuote() { return document.getElementById('vehicle-back-to-quote-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('vehicle-new-shipment-btn') as HTMLButtonElement; },
+            get downloadDocs() { return document.getElementById('vehicle-download-docs-btn') as HTMLButtonElement; },
+        }
+    },
+    
+    bulk: {
+        get detailsForm() { return document.getElementById('bulk-details-form') as HTMLFormElement; },
+        get cargoType() { return document.getElementById('bulk-cargo-type') as HTMLInputElement; },
+        get cargoQuantity() { return document.getElementById('bulk-cargo-quantity') as HTMLInputElement; },
+        get cargoDescription() { return document.getElementById('bulk-cargo-description') as HTMLTextAreaElement; },
+        get originPort() { return document.getElementById('bulk-origin-port') as HTMLInputElement; },
+        get destPort() { return document.getElementById('bulk-dest-port') as HTMLInputElement; },
+        get quoteSummary() { return document.getElementById('bulk-quote-summary') as HTMLDivElement; },
+        get confirmationTitle() { return document.getElementById('bulk-confirmation-title') as HTMLHeadingElement; },
+        get confirmationMessage() { return document.getElementById('bulk-confirmation-message') as HTMLParagraphElement; },
+        steps: {
+            get cargo() { return document.getElementById('bulk-step-cargo'); },
+            get route() { return document.getElementById('bulk-step-route'); },
+            get docs() { return document.getElementById('bulk-step-docs'); },
+            get quote() { return document.getElementById('bulk-step-quote'); },
+            get confirmation() { return document.getElementById('bulk-step-confirmation'); },
+        },
+        nav: {
+            get backToCargo() { return document.getElementById('bulk-back-to-cargo-btn') as HTMLButtonElement; },
+            get toRoute() { return document.getElementById('bulk-to-route-btn') as HTMLButtonElement; },
+            get backToRoute() { return document.getElementById('bulk-back-to-route-btn') as HTMLButtonElement; },
+            get toDocs() { return document.getElementById('bulk-to-docs-btn') as HTMLButtonElement; },
+            get backToDocs() { return document.getElementById('bulk-back-to-docs-btn') as HTMLButtonElement; },
+            get toQuote() { return document.getElementById('bulk-to-quote-btn') as HTMLButtonElement; },
+            get backToQuote() { return document.getElementById('bulk-back-to-quote-btn') as HTMLButtonElement; },
+            get toConfirmation() { return document.getElementById('bulk-to-confirmation-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('bulk-new-shipment-btn') as HTMLButtonElement; },
+            get downloadDocs() { return document.getElementById('bulk-download-docs-btn') as HTMLButtonElement; },
+        }
+    },
+
+    airfreight: {
+        get detailsForm() { return document.getElementById('airfreight-details-form') as HTMLFormElement; },
+        get addPieceBtn() { return document.getElementById('airfreight-add-piece-btn') as HTMLButtonElement; },
+        get serviceLevelSelector() { return document.getElementById('airfreight-service-level-selector') as HTMLDivElement; },
+        get complianceChecklist() { return document.getElementById('airfreight-compliance-checklist') as HTMLDivElement; },
+        get ratesContainer() { return document.getElementById('airfreight-rates-container') as HTMLDivElement; },
+        get confirmationTitle() { return document.getElementById('airfreight-confirmation-title') as HTMLHeadingElement; },
+        get confirmationMessage() { return document.getElementById('airfreight-confirmation-message') as HTMLParagraphElement; },
+        get confirmationAWB() { return document.getElementById('airfreight-confirmation-awb') as HTMLDivElement; },
+        nav: {
+            get backToDetails() { return document.getElementById('airfreight-back-to-details-btn') as HTMLButtonElement; },
+            get toService() { return document.getElementById('airfreight-to-service-btn') as HTMLButtonElement; },
+            get backToDims() { return document.getElementById('airfreight-back-to-dims-btn') as HTMLButtonElement; },
+            get toDocs() { return document.getElementById('airfreight-to-docs-btn') as HTMLButtonElement; },
+            get backToService() { return document.getElementById('airfreight-back-to-service-btn') as HTMLButtonElement; },
+            get toRates() { return document.getElementById('airfreight-to-rates-btn') as HTMLButtonElement; },
+            get backToDocs() { return document.getElementById('airfreight-back-to-docs-btn') as HTMLButtonElement; },
+            get toConfirmation() { return document.getElementById('airfreight-to-confirmation-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('airfreight-new-shipment-btn') as HTMLButtonElement; },
+            get downloadPDF() { return document.getElementById('airfreight-download-pdf-btn') as HTMLButtonElement; },
+        }
+    },
+    
+    inland: {
+        get mapForm() { return document.getElementById('inland-map-form') as HTMLFormElement; },
+        get originSearch() { return document.getElementById('inland-origin-search') as HTMLInputElement; },
+        get destSearch() { return document.getElementById('inland-dest-search') as HTMLInputElement; },
+        get ftlToggle() { return document.getElementById('inland-ftl-toggle') as HTMLInputElement; },
+        get truckBoardList() { return document.getElementById('inland-truck-board-list') as HTMLDivElement; },
+        get paymentOverview() { return document.getElementById('inland-payment-overview') as HTMLDivElement; },
+        get paymentForm() { return document.getElementById('inland-payment-form') as HTMLFormElement; },
+        get trackingView() { return document.getElementById('inland-tracking-view') as HTMLDivElement; },
+        get trackingTitle() { return document.getElementById('inland-tracking-title') as HTMLHeadingElement; },
+        steps: {
+            get map() { return document.getElementById('inland-step-map'); },
+            get cargo() { return document.getElementById('inland-step-cargo'); },
+            get board() { return document.getElementById('inland-step-board'); },
+            get docs() { return document.getElementById('inland-step-docs'); },
+            get payment() { return document.getElementById('inland-step-payment'); },
+        },
+        nav: {
+            get backToMap() { return document.getElementById('inland-back-to-map-btn') as HTMLButtonElement; },
+            get toBoard() { return document.getElementById('inland-to-board-btn') as HTMLButtonElement; },
+            get backToCargo() { return document.getElementById('inland-back-to-cargo-btn') as HTMLButtonElement; },
+            get backToBoard() { return document.getElementById('inland-back-to-board-btn') as HTMLButtonElement; },
+            get toPayment() { return document.getElementById('inland-to-payment-btn') as HTMLButtonElement; },
+            get newBooking() { return document.getElementById('inland-new-booking-btn') as HTMLButtonElement; },
+            get downloadDocs() { return document.getElementById('inland-download-docs-btn') as HTMLButtonElement; },
+        }
+    },
+
+    rivertug: {
+        get detailsForm() { return document.getElementById('rivertug-details-form') as HTMLFormElement; },
+        get originPort() { return document.getElementById('rivertug-origin-port') as HTMLInputElement; },
+        get destPort() { return document.getElementById('rivertug-dest-port') as HTMLInputElement; },
+        get cargoDescription() { return document.getElementById('rivertug-cargo-description') as HTMLTextAreaElement; },
+        get cargoVolume() { return document.getElementById('rivertug-cargo-volume') as HTMLInputElement; },
+        get isHazardous() { return document.getElementById('rivertug-is-hazardous') as HTMLInputElement; },
+        get bargeTypeSelector() { return document.getElementById('rivertug-barge-type-selector') as HTMLDivElement; },
+        get complianceChecklist() { return document.getElementById('rivertug-compliance-checklist') as HTMLDivElement; },
+        get quoteSummary() { return document.getElementById('rivertug-quote-summary') as HTMLDivElement; },
+        get confirmationTitle() { return document.getElementById('rivertug-confirmation-title') as HTMLHeadingElement; },
+        get confirmationMessage() { return document.getElementById('rivertug-confirmation-message') as HTMLParagraphElement; },
+        steps: {
+            get details() { return document.getElementById('rivertug-step-details'); },
+            get docs() { return document.getElementById('rivertug-step-docs'); },
+            get quote() { return document.getElementById('rivertug-step-quote'); },
+            get confirmation() { return document.getElementById('rivertug-step-confirmation'); },
+        },
+        nav: {
+            get backToDetails() { return document.getElementById('rivertug-back-to-details-btn') as HTMLButtonElement; },
+            get toQuote() { return document.getElementById('rivertug-to-quote-btn') as HTMLButtonElement; },
+            get backToDocs() { return document.getElementById('rivertug-back-to-docs-btn') as HTMLButtonElement; },
+            get toConfirmation() { return document.getElementById('rivertug-to-confirmation-btn') as HTMLButtonElement; },
+            get newShipment() { return document.getElementById('rivertug-new-shipment-btn') as HTMLButtonElement; },
+            get downloadBundle() { return document.getElementById('rivertug-download-bundle-btn') as HTMLButtonElement; },
+        }
+    },
+    
+    warehouse: {
+        get facilityList() { return document.getElementById('warehouse-facility-list') as HTMLDivElement; },
+        get locationSearch() { return document.getElementById('warehouse-location-search') as HTMLInputElement; },
+        get filterCheckboxes() { return document.querySelectorAll('#warehouse-filters input[type="checkbox"]'); },
+        get applyFiltersBtn() { return document.getElementById('warehouse-apply-filters-btn') as HTMLButtonElement; },
+        get complianceChecklist() { return document.getElementById('warehouse-compliance-checklist') as HTMLDivElement; },
+        get serviceLevelSelector() { return document.getElementById('warehouse-service-level-selector') as HTMLDivElement; },
+    },
+    
+    schedules: {
+        get originInput() { return document.getElementById('schedules-origin-input') as HTMLInputElement; },
+        get destInput() { return document.getElementById('schedules-dest-input') as HTMLInputElement; },
+        get modeSelect() { return document.getElementById('schedules-mode-select') as HTMLSelectElement; },
+        get carrierSelect() { return document.getElementById('schedules-carrier-select') as HTMLSelectElement; },
+    },
+    
+    register: {
+        get page() { return document.getElementById('page-register') as HTMLDivElement; },
+        get mainView() { return document.getElementById('tf-main-view') as HTMLDivElement; },
+        get applicationView() { return document.getElementById('tf-application-view') as HTMLDivElement; },
+        get advisorForm() { return document.getElementById('tf-advisor-form') as HTMLFormElement; },
+        get userQueryInput() { return document.getElementById('tf-user-query') as HTMLTextAreaElement; },
+        get chatHistory() { return document.getElementById('tf-chat-history') as HTMLDivElement; },
+        get complianceChecklist() { return document.getElementById('tf-compliance-checklist') as HTMLDivElement; },
+    },
+    
+    paymentPage: {
+        get overview() { return document.getElementById('payment-overview') as HTMLDivElement; },
+        get form() { return document.getElementById('payment-form') as HTMLFormElement; },
+    },
+    confirmationPage: {
+        get title() { return document.getElementById('confirmation-title') as HTMLHeadingElement; },
+        get message() { return document.getElementById('confirmation-message') as HTMLParagraphElement; },
+        get newShipmentBtn() { return document.getElementById('new-shipment-btn') as HTMLButtonElement; },
+        get pdfBtn() { return document.getElementById('download-pdf-btn') as HTMLButtonElement; },
+    },
+};

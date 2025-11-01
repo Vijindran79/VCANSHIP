@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="200" height="50">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&amp;display=swap');
+    </style>
+  </defs>
+  <style>
+    .v { fill: #111827; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 40px; }
+    .ship { fill: #F97316; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 40px; }
+    :root[data-theme="dark"] .v { fill: #F9FAFB; }
+  </style>
+  <text x="10" y="40" class="v">Vcan</text>
+  <text x="105" y="40" class="ship">Ship</text>
+</svg>
