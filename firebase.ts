@@ -10,14 +10,15 @@ import "firebase/compat/storage";
 import { v4 as uuidv4 } from 'uuid';
 import { State } from './state';
 
-// Your web app's Firebase configuration from user prompt
+// Your web app's Firebase configuration
 export const firebaseConfig = {
   apiKey: "AIzaSyBSOfOv9zXBZNI_b0ZAUHmbP0cU8h5Xp_c",
   authDomain: "vcanship-onestop-logistics.firebaseapp.com",
   projectId: "vcanship-onestop-logistics",
-  storageBucket: "vcanship-onestop-logistics.appspot.com",
+  storageBucket: "vcanship-onestop-logistics.firebasestorage.app",
   messagingSenderId: "685756131515",
-  appId: "1:685756131515:web:55eb447560c628f12da19e"
+  appId: "1:685756131515:web:55eb447560c628f12da19e",
+  measurementId: "G-ESVXH80BP1"
 };
 
 // Initialize Firebase
