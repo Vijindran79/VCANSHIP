@@ -10,9 +10,11 @@ const axios = require('axios');
 //   firebase functions:config:set sendcloud.public_key="YOUR_PUBLIC_KEY" sendcloud.secret_key="YOUR_SECRET_KEY"
 //   firebase functions:config:set searates.api_key="YOUR_SEARATES_API_KEY"
 
-const SENDCLOUD_PUBLIC_KEY = functions.config().sendcloud?.public_key;
-const SENDCLOUD_SECRET_KEY = functions.config().sendcloud?.secret_key;
-const SEARATES_API_KEY = functions.config().searates?.api_key;
+// Use environment variables for secrets
+// Set these using: firebase functions:secrets:set SENDCLOUD_PUBLIC_KEY
+const SENDCLOUD_PUBLIC_KEY = process.env.SENDCLOUD_PUBLIC_KEY;
+const SENDCLOUD_SECRET_KEY = process.env.SENDCLOUD_SECRET_KEY;
+const SEARATES_API_KEY = process.env.SEARATES_API_KEY;
 
 /**
  * Normalises errors into HttpsError for the client.
