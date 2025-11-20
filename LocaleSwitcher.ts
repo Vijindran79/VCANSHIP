@@ -30,6 +30,7 @@ let selectedLanguage: string | null = null;
 // Temporary state for selections within the modal
 let modalSelectedCountry: Locale | null = null;
 let modalSelectedLanguage: string | null = null;
+let modalSelectedCurrency: { code: string; symbol: string } | null = null;
 
 let isModalOpen = false;
 
@@ -77,7 +78,7 @@ const debounce = <T extends (...args: any[]) => void>(func: T, wait: number): ((
 function dispatchLocaleChangeEvent() {
   if (!selectedCountry || !selectedLanguage) return;
   
-  // Update global state
+  // Update global state with the selected currency (which may differ from country's default)
   setState({ currentCurrency: selectedCountry.currency });
 
   const event = new CustomEvent('locale-change', {
@@ -147,12 +148,30 @@ function renderCountryList() {
     }
 }
 
+// Get all unique currencies from locales
+function getAllCurrencies(): { code: string; symbol: string }[] {
+    const currencyMap = new Map<string, { code: string; symbol: string }>();
+    locales.forEach(locale => {
+        if (!currencyMap.has(locale.currency.code)) {
+            currencyMap.set(locale.currency.code, locale.currency);
+        }
+    });
+    return Array.from(currencyMap.values()).sort((a, b) => a.code.localeCompare(b.code));
+}
+
 function renderPreviewPanel() {
     if (!elements.previewPanel) return;
     if (!modalSelectedCountry) {
         elements.previewPanel.innerHTML = `<p class="helper-text">Select a country from the list to see options.</p>`;
         return;
     }
+    
+    // Initialize currency to country's default if not set
+    if (!modalSelectedCurrency) {
+        modalSelectedCurrency = modalSelectedCountry.currency;
+    }
+    
+    const allCurrencies = getAllCurrencies();
     
     elements.previewPanel.innerHTML = `
         <div class="locale-preview-flag">${countryCodeToFlag(modalSelectedCountry.countryCode)}</div>
@@ -165,11 +184,17 @@ function renderPreviewPanel() {
                 </select>
             </div>
             <div class="input-wrapper">
-                 <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Currency</label>
-                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: var(--background-color); border-radius: 8px; border: 1px solid var(--border-color);">
-                     <span style="font-size: 1.5rem; font-weight: bold;">${modalSelectedCountry.currency.symbol}</span>
-                     <span style="font-weight: 600; font-size: 1.1rem;">${modalSelectedCountry.currency.code}</span>
-                 </div>
+                 <label for="modal-currency-select" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Currency</label>
+                 <select id="modal-currency-select" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--background-color); font-size: 1rem;">
+                    ${allCurrencies.map(currency => 
+                        `<option value="${currency.code}" data-symbol="${currency.symbol}" ${currency.code === modalSelectedCurrency?.code ? 'selected' : ''}>
+                            ${currency.symbol} ${currency.code}
+                         </option>`
+                    ).join('')}
+                 </select>
+                 <p style="font-size: 0.85rem; color: var(--medium-gray); margin-top: 0.5rem;">
+                    Default: ${modalSelectedCountry.currency.symbol} ${modalSelectedCountry.currency.code}
+                 </p>
             </div>
         </div>
     `;
@@ -180,6 +205,18 @@ function renderPreviewPanel() {
         modalSelectedLanguage = langSelect.value;
         if (elements.confirmBtn) elements.confirmBtn.disabled = false;
     });
+    
+    const currencySelect = document.getElementById('modal-currency-select') as HTMLSelectElement;
+    if (currencySelect) {
+        currencySelect.value = modalSelectedCurrency?.code || modalSelectedCountry.currency.code;
+        currencySelect.addEventListener('change', () => {
+            const selectedOption = currencySelect.options[currencySelect.selectedIndex];
+            const symbol = selectedOption.getAttribute('data-symbol') || '';
+            const code = currencySelect.value;
+            modalSelectedCurrency = { code, symbol };
+            if (elements.confirmBtn) elements.confirmBtn.disabled = false;
+        });
+    }
 }
 
 // --- MODAL MANAGEMENT ---
@@ -188,6 +225,7 @@ function openLocaleModal() {
     if (!elements.modal) return;
     modalSelectedCountry = selectedCountry;
     modalSelectedLanguage = selectedLanguage;
+    modalSelectedCurrency = selectedCountry ? selectedCountry.currency : null;
 
     elements.modal.classList.add('active');
     isModalOpen = true;
@@ -233,6 +271,10 @@ function handleCountryPreview(e: Event) {
         const country = locales.find(l => l.countryCode === item.dataset.countryCode);
         if (country) {
             modalSelectedCountry = country;
+            // Set currency to country's default when country changes, but keep user's selection if they already changed it
+            if (!modalSelectedCurrency || modalSelectedCurrency.code === selectedCountry?.currency.code) {
+                modalSelectedCurrency = country.currency;
+            }
             renderCountryList();
             renderPreviewPanel();
             if (elements.confirmBtn) elements.confirmBtn.disabled = false;
@@ -241,13 +283,17 @@ function handleCountryPreview(e: Event) {
 }
 
 function handleConfirmSelection() {
-    if (!modalSelectedCountry || !modalSelectedLanguage) return;
+    if (!modalSelectedCountry || !modalSelectedLanguage || !modalSelectedCurrency) return;
     
     selectedCountry = modalSelectedCountry;
     selectedLanguage = modalSelectedLanguage;
     
+    // Override country's currency with user's selection
+    selectedCountry.currency = modalSelectedCurrency;
+    
     localStorage.setItem('vcanship_country', selectedCountry.countryCode);
     localStorage.setItem('vcanship_language', selectedLanguage);
+    localStorage.setItem('vcanship_currency', JSON.stringify(modalSelectedCurrency));
 
     updateHeaderControls();
     dispatchLocaleChangeEvent();
@@ -315,6 +361,7 @@ export async function initializeLocaleSwitcher() {
         if (!initialCountryCode) initialCountryCode = 'GB'; 
 
         const savedLanguage = localStorage.getItem('vcanship_language');
+        const savedCurrency = localStorage.getItem('vcanship_currency');
         const initialCountry = locales.find(l => l.countryCode === initialCountryCode) || locales[0];
 
         selectedCountry = initialCountry;
@@ -322,8 +369,19 @@ export async function initializeLocaleSwitcher() {
             ? savedLanguage
             : 'en';
         
+        // Restore saved currency or use country's default
+        if (savedCurrency) {
+            try {
+                const currency = JSON.parse(savedCurrency);
+                selectedCountry.currency = currency;
+            } catch (e) {
+                console.warn('Failed to parse saved currency', e);
+            }
+        }
+        
         localStorage.setItem('vcanship_country', selectedCountry.countryCode);
         localStorage.setItem('vcanship_language', selectedLanguage);
+        localStorage.setItem('vcanship_currency', JSON.stringify(selectedCountry.currency));
 
         updateHeaderControls();
         dispatchLocaleChangeEvent();

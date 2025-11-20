@@ -13,7 +13,6 @@ export const getAllServicesConfig = (): { id: Service, name: string, icon: strin
         { id: 'fcl', name: 'FCL Freight', icon: 'fa-solid fa-boxes-stacked' },
         { id: 'lcl', name: 'LCL Freight', icon: 'fa-solid fa-boxes-packing' },
         { id: 'airfreight', name: 'Air Freight', icon: 'fa-solid fa-plane-up' },
-        { id: 'vehicle', name: t('sidebar.vehicle'), icon: 'fa-solid fa-car' },
         { id: 'railway', name: t('sidebar.railway'), icon: 'fa-solid fa-train-subway' },
         { id: 'inland', name: t('sidebar.inland'), icon: 'fa-solid fa-truck' },
         { id: 'bulk', name: t('sidebar.bulk'), icon: 'fa-solid fa-anchor' },
