@@ -1,0 +1,33 @@
+========================================
+  DEPLOYMENT INSTRUCTIONS
+========================================
+
+The new parcel form is built and ready to deploy!
+
+STEP 1: Open PowerShell or Command Prompt in this folder
+
+STEP 2: Login to Firebase (this will open a browser)
+   firebase login --reauth
+
+STEP 3: Deploy
+   firebase deploy --only hosting
+
+OR use the npm script:
+   npm run deploy:hosting
+
+========================================
+After deployment, check:
+https://vcanship-onestop-logistics.web.app
+
+Then navigate to "Send a Parcel" and you'll see:
+✓ Progress indicator with 5 steps
+✓ Step 1: Sender Information (full form)
+✓ Step 2: Recipient Information
+✓ Step 3: Parcel Details
+✓ Step 4: Options
+✓ Step 5: Review
+✓ Support card in sidebar
+✓ Drop-off finder in sidebar
+
+IMPORTANT: Clear your browser cache or use incognito mode!
+

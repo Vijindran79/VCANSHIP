@@ -14,32 +14,70 @@ export function renderDashboard() {
         return;
     }
 
-    // --- Render E-commerce Hub UI from Screenshot ---
+    // --- Enhanced Dashboard UI with Graphics ---
     page.innerHTML = `
-        <div class="dashboard-ecom-hub">
-            <h2 class="ecom-hub-title">${t('dashboard.title')}</h2>
-            <div class="ecom-hub-actions">
-                <button class="ecom-action-card" id="ecom-hub-dashboard-card">
-                    <div class="ecom-action-card-icon">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <div class="dashboard-header-content">
+                    <div class="dashboard-header-icon">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h1 class="dashboard-title">${t('dashboard.title')}</h1>
+                        <p class="dashboard-subtitle">Manage your shipping operations and track your business</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-cards-grid">
+                <button class="dashboard-card dashboard-card-primary" id="ecom-hub-dashboard-card">
+                    <div class="dashboard-card-icon-wrapper dashboard-card-icon-blue">
                         <i class="fa-solid fa-table-columns"></i>
                     </div>
-                    <span>${t('dashboard.card_dashboard')}</span>
-                </button>
-                <button class="ecom-action-card" id="ecom-hub-myproducts-card">
-                    <div class="ecom-action-card-icon">
-                       <i class="fa-solid fa-boxes-stacked"></i>
+                    <div class="dashboard-card-content">
+                        <h3 class="dashboard-card-title">${t('dashboard.card_dashboard')}</h3>
+                        <p class="dashboard-card-description">View analytics and overview of your shipping activities</p>
                     </div>
-                    <span>${t('dashboard.card_my_products')}</span>
+                    <div class="dashboard-card-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
                 </button>
-                <button class="ecom-action-card" id="ecom-hub-addproduct-card">
-                    <div class="ecom-action-card-icon">
+                
+                <button class="dashboard-card dashboard-card-secondary" id="ecom-hub-myproducts-card">
+                    <div class="dashboard-card-icon-wrapper dashboard-card-icon-green">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div class="dashboard-card-content">
+                        <h3 class="dashboard-card-title">${t('dashboard.card_my_products')}</h3>
+                        <p class="dashboard-card-description">Manage and track all your products and inventory</p>
+                    </div>
+                    <div class="dashboard-card-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </button>
+                
+                <button class="dashboard-card dashboard-card-accent" id="ecom-hub-addproduct-card">
+                    <div class="dashboard-card-icon-wrapper dashboard-card-icon-orange">
                         <i class="fa-solid fa-circle-plus"></i>
                     </div>
-                    <span>${t('dashboard.card_add_product')}</span>
+                    <div class="dashboard-card-content">
+                        <h3 class="dashboard-card-title">${t('dashboard.card_add_product')}</h3>
+                        <p class="dashboard-card-description">Add new products to your catalog and start shipping</p>
+                    </div>
+                    <div class="dashboard-card-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
                 </button>
             </div>
-            <div id="ecom-hub-content-view">
-                <p>${t('dashboard.stats_placeholder')}</p>
+            
+            <div class="dashboard-stats-section" id="ecom-hub-content-view">
+                <div class="dashboard-stats-placeholder">
+                    <div class="dashboard-stats-icon">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h3>Welcome to Your Dashboard</h3>
+                    <p>${t('dashboard.stats_placeholder')}</p>
+                </div>
             </div>
         </div>
     `;

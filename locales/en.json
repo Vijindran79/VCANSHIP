@@ -25,7 +25,9 @@
     "inspectorPortal": "Inspector Portal"
   },
   "loading": {
-    "default": "Please wait..."
+    "default": "Please wait...",
+    "authenticating": "Authenticating...",
+    "sending_magic_link": "Sending magic link..."
   },
   "mobile_menu": {
     "dashboard": "Dashboard",
@@ -162,7 +164,10 @@
     "magic_link_signup": "Sign up with a magic link instead",
     "check_email": "Check Your Email",
     "resend_magic_link": "Didn't receive it? Resend link",
-    "back_to_start": "Back to Start"
+    "back_to_start": "Back to Start",
+    "desc_password_html": "Enter your password for <strong>{email}</strong>.",
+    "desc_create_password_html": "Create a password for <strong>{email}</strong>.",
+    "desc_magic_link_sent_html": "We've sent a secure sign-in link to <strong>{email}</strong>. Click the link to log in."
   },
   "help_page": {
     "title": "Help Center",
@@ -204,6 +209,188 @@
         "answer": "Click on 'Login / Sign Up' in the header and follow the registration process."
       }
     ]
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "card_dashboard": "Dashboard Overview",
+    "card_my_products": "My Products",
+    "card_add_product": "Add Product",
+    "stats_placeholder": "Welcome to your dashboard! Select an option above to get started."
+  },
+  "parcel": {
+    "title": "Send a Parcel",
+    "subtitle": "Complete the form step by step to get the best shipping rates.",
+    "steps": {
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "details": "Parcel Details",
+      "options": "Options",
+      "review": "Review"
+    },
+    "sender": {
+      "title": "Sender Information",
+      "description": "Enter your contact details. This information will be used for the shipping label and tracking updates.",
+      "name": "Full Name",
+      "name_hint": "Required for shipping label",
+      "name_tooltip": "Enter your full name as it should appear on the shipping label",
+      "email": "Email Address",
+      "email_hint": "For tracking notifications",
+      "email_tooltip": "We'll send tracking updates to this email",
+      "phone": "Phone Number",
+      "phone_hint": "Format: +[country code] [number]",
+      "phone_tooltip": "Include country code (e.g., +44 for UK)",
+      "address": "Street Address",
+      "city": "City",
+      "postcode": "Postcode",
+      "postcode_tooltip": "Enter postcode or country code (e.g., GB, US)",
+      "country": "Country"
+    },
+    "recipient": {
+      "title": "Recipient Information",
+      "description": "Enter the recipient's contact details. This information is required for delivery.",
+      "name": "Full Name",
+      "name_hint": "Required for shipping label",
+      "name_tooltip": "Enter the recipient's full name as it should appear on the shipping label",
+      "email": "Email Address",
+      "email_hint": "Optional - for delivery notifications",
+      "email_tooltip": "Optional: Recipient will receive delivery notifications",
+      "phone": "Phone Number",
+      "phone_hint": "Format: +[country code] [number]",
+      "phone_tooltip": "Include country code (e.g., +1 for USA)",
+      "address": "Street Address",
+      "city": "City",
+      "postcode": "Postcode",
+      "postcode_tooltip": "Enter postcode or country code (e.g., US, GB)",
+      "country": "Country"
+    },
+    "details": {
+      "title": "Parcel Details",
+      "description": "Tell us about your parcel to get accurate shipping rates.",
+      "type": "Parcel Type",
+      "type_hint": "This helps us suggest the best shipping options",
+      "type_tooltip": "Select the type that best describes your shipment",
+      "type_document": "Document",
+      "type_envelope": "Envelope",
+      "type_box": "Box",
+      "type_pallet": "Pallet",
+      "type_other": "Other",
+      "description": "Item Description",
+      "description_hint": "Required for customs declaration",
+      "description_tooltip": "Brief description of contents (required for customs)",
+      "description_placeholder": "e.g., Electronics, Clothing, Books",
+      "weight": "Weight (kg)",
+      "weight_hint": "Enter weight in kilograms (0.1 - 1000 kg)",
+      "weight_tooltip": "Maximum weight: 1000 kg per parcel",
+      "weight_placeholder": "e.g., 2.5",
+      "dimensions_title": "Dimensions (Optional but Recommended)",
+      "dimensions_hint": "Accurate dimensions help us provide better rates and ensure your parcel fits carrier requirements.",
+      "length": "Length (cm)",
+      "length_tooltip": "Longest side of the parcel",
+      "width": "Width (cm)",
+      "width_tooltip": "Second longest side",
+      "height": "Height (cm)",
+      "height_tooltip": "Shortest side",
+      "value": "Declared Value",
+      "value_hint": "Required for customs declaration and insurance",
+      "value_tooltip": "Value of items for customs and insurance purposes"
+    },
+    "options": {
+      "title": "Additional Options",
+      "description": "Customize your shipment with optional services.",
+      "insurance": "Shipping Insurance",
+      "insurance_description": "Protect your shipment against loss or damage. Coverage up to",
+      "signature": "Signature Required",
+      "signature_description": "Require recipient signature upon delivery for added security.",
+      "signature_price": "+$5.00",
+      "fragile": "Fragile Handling",
+      "fragile_description": "Extra careful handling for fragile items.",
+      "fragile_price": "+$3.00",
+      "instructions": "Delivery Instructions (Optional)",
+      "instructions_tooltip": "Special instructions for the delivery driver",
+      "instructions_placeholder": "e.g., Leave at front door, Ring doorbell twice",
+      "instructions_hint": "Any special delivery instructions"
+    },
+    "review": {
+      "title": "Review Your Details",
+      "description": "Please review all information before proceeding to get quotes.",
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "parcel": "Parcel",
+      "options": "Options",
+      "type": "Type",
+      "weight": "Weight",
+      "dimensions": "Dimensions",
+      "dimensions_not_provided": "Not provided",
+      "value": "Value",
+      "description": "Description",
+      "no_options": "No additional options selected",
+      "instructions": "Instructions",
+      "additional_services": "Additional Services",
+      "summary_note": "Shipping rates will be calculated based on your parcel details. Additional service costs will be added to the final quote."
+    },
+    "support": {
+      "title": "Need Help?",
+      "description": "Our support team is here to assist you.",
+      "faq": "View FAQ",
+      "contact": "Contact Support"
+    },
+    "dropoff": {
+      "title": "Find a Drop-off Point",
+      "description": "Enter your postcode to find nearby parcel drop-off locations.",
+      "postcode": "Your Postcode",
+      "postcode_placeholder": "e.g., SW1A 1AA",
+      "postcode_hint": "We'll find the nearest drop-off points",
+      "search": "Search"
+    },
+    "buttons": {
+      "previous": "Previous",
+      "next": "Next",
+      "get_quotes": "Get Quotes",
+      "back_to_services": "Back to Services",
+      "back_to_details": "Back to Details",
+      "back_to_quotes": "Back to Quotes",
+      "select_proceed": "Select & Proceed",
+      "confirm_pay": "Confirm & Pay",
+      "new_shipment": "New Shipment"
+    },
+    "errors": {
+      "name_required": "Name is required",
+      "email_required": "Valid email is required",
+      "email_invalid": "Please enter a valid email",
+      "phone_required": "Phone number is required",
+      "address_required": "Address is required",
+      "city_required": "City is required",
+      "postcode_required": "Postcode is required",
+      "country_required": "Country is required",
+      "type_required": "Please select a parcel type",
+      "description_required": "Item description is required for customs",
+      "weight_invalid": "Weight must be between 0.1 and 1000 kg",
+      "value_invalid": "Declared value must be greater than 0",
+      "postcode_search_required": "Please enter a postcode to search."
+    },
+    "payment": {
+      "title": "Payment Summary",
+      "carrier": "Carrier",
+      "service": "Service",
+      "shipping_cost": "Shipping Cost",
+      "additional_services": "Additional Services",
+      "total": "Total Cost",
+      "simulated": "This is a simulated payment step."
+    },
+    "confirmation": {
+      "title": "Shipment Confirmed!",
+      "message": "Your parcel has been booked. Details have been sent to your email.",
+      "tracking_id": "Your Tracking ID"
+    },
+    "results": {
+      "back": "Back to Details",
+      "filters": "Filter Results",
+      "all": "All",
+      "dropoff": "Drop-off",
+      "collection": "Collection",
+      "couriers": "Couriers",
+      "no_results": "No services match your criteria. Try adjusting the filters."
+    }
   }
 }
 

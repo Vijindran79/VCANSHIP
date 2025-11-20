@@ -47,7 +47,6 @@ import { State, setState, Address } from './state';
 import { t } from './i18n';
 import { mountService } from './router';
 import { showToast } from './ui';
-import { generatePromotions, startPromotionsRotator } from './promotions';
 
 // Module-level store for editor instances to manage their lifecycle
 let editors: Map<string, monaco.editor.IStandaloneCodeEditor> = new Map();
@@ -137,14 +136,6 @@ export function renderLandingPage() {
             </div>
         </div>
       </section>
-      
-      <section class="landing-section live-deals-section">
-        <h2 class="landing-section-title" data-i18n="landing.live_deals_title">Live Shipping Deals</h2>
-        <p class="landing-section-subtitle" data-i18n="landing.live_deals_subtitle">Check out our latest hot rates on popular trade lanes, updated daily.</p>
-        <div id="live-deals-container" class="live-deals-container">
-            <!-- Dynamic promotions will be rendered here by promotions.ts -->
-        </div>
-      </section>
     `;
 
     // --- SEO Rotator Logic ---
@@ -194,7 +185,8 @@ export function renderHelpPage() {
 
     const faqs = t('help_page.faqs');
     if (!Array.isArray(faqs)) {
-        console.error("FAQs translation is not an array.");
+        console.error("FAQs translation is not an array. Got:", typeof faqs, faqs);
+        // Fallback to empty array to prevent crash
         return;
     }
 
@@ -247,7 +239,7 @@ export function renderHelpPage() {
                         <i class="fa-solid fa-phone"></i>
                         <span data-i18n="help_page.call_support">Call Support</span>
                     </a>
-                    <a href="mailto:support@vcanresources.com" class="main-submit-btn">
+                    <a href="mailto:vg@vcnresources.com" class="main-submit-btn">
                         <i class="fa-regular fa-envelope"></i>
                         <span data-i18n="help_page.email_support">Email Support</span>
                     </a>
@@ -255,7 +247,7 @@ export function renderHelpPage() {
                 <div class="contact-support-fallback">
                     <span data-i18n="help_page.copy_email_desc">Or copy our email:</span>
                     <div class="api-key-display" style="margin-top: 0.5rem; justify-content: center;">
-                        <code id="support-email-text">support@vcanresources.com</code>
+                        <code id="support-email-text">vg@vcnresources.com</code>
                         <button class="secondary-btn copy-btn" data-copy-target="#support-email-text">
                             <i class="fa-regular fa-copy"></i>
                             <span data-i18n="help_page.copy">Copy</span>
@@ -605,55 +597,86 @@ export function renderTermsPage() {
 }
 
 export function initializeStaticPages() {
-    // Inject the new ticker banner content
+    // Inject Bloomberg-style ticker banner with all major carriers and e-commerce platforms
     const tickerBanner = document.getElementById('top-ticker-banner');
     if (tickerBanner) {
-        const tickerCarriers = [
-            'Maersk', 'CMA CGM', 'Hapag-Lloyd', 'ONE', 'Evergreen', // Sea
-            'Lufthansa Cargo', 'Emirates SkyCargo', 'Cathay Cargo', 'Atlas Air', // Air
-            'DHL', 'FedEx', 'UPS', 'DPD' // Parcel
+        // Shipping Carriers - Parcel
+        const parcelCarriers = [
+            { name: 'FedEx', domain: 'fedex.com', type: 'carrier' },
+            { name: 'UPS', domain: 'ups.com', type: 'carrier' },
+            { name: 'DHL', domain: 'dhl.com', type: 'carrier' },
+            { name: 'USPS', domain: 'usps.com', type: 'carrier' },
+            { name: 'Royal Mail', domain: 'royalmail.com', type: 'carrier' },
+            { name: 'China Post', domain: 'chinapost.com.cn', type: 'carrier' },
+            { name: 'EMS', domain: 'ems.com.cn', type: 'carrier' }
         ];
 
-        const getTickerLogoUrl = (carrierName: string) => {
-            const domainMap: { [key: string]: string } = {
-                'Hapag-Lloyd': 'hlag.com', 'ONE': 'one-line.com', 'Lufthansa Cargo': 'lufthansa-cargo.com',
-                'Emirates SkyCargo': 'skycargo.com', 'Cathay Cargo': 'cathaycargo.com', 'Atlas Air': 'atlasair.com',
-                'CMA CGM': 'cma-cgm.com'
-            };
-            const domain = domainMap[carrierName] || `${carrierName.toLowerCase().replace(/\s|&/g, '').replace(/\./g, '')}.com`;
-            return `https://logo.clearbit.com/${domain}?size=80`;
+        // Shipping Carriers - Sea Freight
+        const seaCarriers = [
+            { name: 'Maersk', domain: 'maersk.com', type: 'carrier' },
+            { name: 'PIL', domain: 'pil.com.sg', type: 'carrier' },
+            { name: 'CMA CGM', domain: 'cma-cgm.com', type: 'carrier' },
+            { name: 'Hapag-Lloyd', domain: 'hapag-lloyd.com', type: 'carrier' },
+            { name: 'ONE', domain: 'one-line.com', type: 'carrier' },
+            { name: 'Evergreen', domain: 'evergreen-line.com', type: 'carrier' }
+        ];
+
+        // Air Cargo Companies
+        const airCargoCarriers = [
+            { name: 'Cathay Pacific Cargo', domain: 'cathaycargo.com', type: 'carrier' },
+            { name: 'Emirates SkyCargo', domain: 'skycargo.com', type: 'carrier' },
+            { name: 'Qatar Airways Cargo', domain: 'qrcargo.com', type: 'carrier' },
+            { name: 'Turkish Cargo', domain: 'turkishcargo.com', type: 'carrier' },
+            { name: 'Air France KLM Martinair Cargo', domain: 'airfranceklm.com', type: 'carrier' },
+            { name: 'Singapore Airlines Cargo', domain: 'sialcargo.com', type: 'carrier' },
+            { name: 'Cargolux', domain: 'cargolux.com', type: 'carrier' },
+            { name: 'Korean Air Cargo', domain: 'koreanaircargo.com', type: 'carrier' },
+            { name: 'ANA Cargo', domain: 'ana.co.jp', type: 'carrier' },
+            { name: 'Lufthansa Cargo', domain: 'lufthansa-cargo.com', type: 'carrier' },
+            { name: 'Atlas Air', domain: 'atlasair.com', type: 'carrier' }
+        ];
+
+        // E-commerce Platforms
+        const ecommercePlatforms = [
+            { name: 'Amazon', domain: 'amazon.com', type: 'ecommerce' },
+            { name: 'eBay', domain: 'ebay.com', type: 'ecommerce' },
+            { name: 'Walmart', domain: 'walmart.com', type: 'ecommerce' },
+            { name: 'Shopify', domain: 'shopify.com', type: 'ecommerce' },
+            { name: 'Alibaba', domain: 'alibaba.com', type: 'ecommerce' },
+            { name: 'Etsy', domain: 'etsy.com', type: 'ecommerce' },
+            { name: 'Shopee', domain: 'shopee.com', type: 'ecommerce' },
+            { name: 'Flipkart', domain: 'flipkart.com', type: 'ecommerce' },
+            { name: 'Rakuten', domain: 'rakuten.com', type: 'ecommerce' },
+            { name: 'Mercado Libre', domain: 'mercadolibre.com', type: 'ecommerce' }
+        ];
+
+        // Combine all brands - carriers first, then e-commerce
+        const allBrands = [
+            ...parcelCarriers,
+            ...seaCarriers,
+            ...airCargoCarriers,
+            ...ecommercePlatforms
+        ];
+
+        const getTickerLogoUrl = (brand: { name: string; domain: string }) => {
+            // Try multiple logo sources for better reliability
+            return `https://logo.clearbit.com/${brand.domain}?size=40`;
         };
-        
-        const tickerItems = [
-            'Welcome to Vcanship',
-            'Global Shipping, Intelligently Simplified.',
-            'AI-POWERED LOGISTICS',
-            'REAL-TIME QUOTES',
-            'CONNECTING CONTINENTS'
-        ];
-        
-        let tickerHtml = '';
-        let itemIndex = 0;
-        let carrierIndex = 0;
 
-        // Interleave text and logos
-        for (let i = 0; i < (tickerItems.length + tickerCarriers.length) * 2; i++) {
-             if (i % 3 !== 0 && itemIndex < tickerItems.length) {
-                tickerHtml += `<span>${tickerItems[itemIndex % tickerItems.length]}</span>`;
-                itemIndex++;
-            } else if (carrierIndex < tickerCarriers.length) {
-                const carrier = tickerCarriers[carrierIndex % tickerCarriers.length];
-                tickerHtml += `<img src="${getTickerLogoUrl(carrier)}" alt="${carrier} logo" class="carrier-logo-ticker" title="${carrier}">`;
-                carrierIndex++;
-            }
-        }
+        // Create ticker items - duplicate for seamless infinite scroll
+        let tickerHtml = '';
+        const brandsForTicker = [...allBrands, ...allBrands]; // Duplicate for seamless loop
         
-        tickerBanner.innerHTML = `<div class="ticker-content">${tickerHtml}</div>`;
+        brandsForTicker.forEach((brand) => {
+            // Show brand name prominently - logos may be blocked by ad blockers
+            // Use brand name as primary display, logo is optional
+            const brandIcon = brand.type === 'carrier' ? '🚢' : '🛒';
+            tickerHtml += `<div class="ticker-item" data-type="${brand.type}"><span class="ticker-icon-fallback">${brandIcon}</span><img src="${getTickerLogoUrl(brand)}" alt="${brand.name}" class="ticker-logo" loading="lazy" onerror="this.style.display='none'; this.previousElementSibling.style.display='inline-block';" onload="this.style.display='block'; this.previousElementSibling.style.display='none';"><span class="ticker-brand-name">${brand.name}</span></div>`;
+        });
+        
+        // Wrap in container for proper animation - single horizontal line
+        tickerBanner.innerHTML = `<div class="ticker-wrapper"><div class="ticker-content">${tickerHtml}</div></div>`;
     }
 
     renderLandingPage();
-
-    // Initialize promotions
-    generatePromotions();
-    startPromotionsRotator('live-deals-container');
 }

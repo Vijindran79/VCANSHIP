@@ -89,7 +89,13 @@ async function loadTranslations(lang: string): Promise<void> {
 
     const response = await fetch(`./locales/${langFile}.json`);
     if (!response.ok) {
-      throw new Error(`Could not load translation file for ${lang}`);
+      throw new Error(`Could not load translation file for ${lang}: ${response.status} ${response.statusText}`);
+    }
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error(`Expected JSON but got ${contentType}. Response:`, text.substring(0, 200));
+      throw new Error(`Invalid content type for translation file: ${contentType}`);
     }
     translations = await response.json();
     currentLanguage = lang;

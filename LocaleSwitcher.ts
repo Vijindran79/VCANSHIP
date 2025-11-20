@@ -302,12 +302,30 @@ function handleConfirmSelection() {
 
 function attachEventListeners() {
     // Listener for the desktop header button
-    elements.headerBtn?.addEventListener('click', openLocaleModal);
+    if (elements.headerBtn) {
+        elements.headerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openLocaleModal();
+        });
+    }
 
-    // Listener for the mobile menu button
+    // Listener for the mobile menu button - use direct event delegation
+    const mobileLanguageBtn = document.getElementById('settings-language-btn');
+    if (mobileLanguageBtn) {
+        mobileLanguageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openLocaleModal();
+        });
+    }
+    
+    // Also use body delegation as backup
     document.body.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
-        if (target.closest('#settings-language-btn')) {
+        if (target.closest('#settings-language-btn') || target.closest('#header-locale-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
             openLocaleModal();
         }
     });
@@ -323,24 +341,78 @@ function attachEventListeners() {
             closeLocaleModal();
         }
     });
+    
+    console.log('Locale switcher event listeners attached', {
+        headerBtn: !!elements.headerBtn,
+        mobileBtn: !!mobileLanguageBtn,
+        modal: !!elements.modal
+    });
 }
 
 // --- INITIALIZATION ---
 
 export async function initializeLocaleSwitcher() {
+    // Always attach event listeners first, even if JSON loading fails
+    attachEventListeners();
+    
     try {
-        const [localesResponse, languagesResponse] = await Promise.all([
-            fetch('./locales.json'),
-            fetch('./languages.json')
-        ]);
-        if (!localesResponse.ok) throw new Error(`HTTP error! status: ${localesResponse.status}`);
-        if (!languagesResponse.ok) throw new Error(`HTTP error! status: ${languagesResponse.status}`);
-        
-        locales = await localesResponse.json();
-        languages = await languagesResponse.json();
-        filteredLocales = [...locales];
+        // Try multiple paths in case of routing issues
+        const tryFetch = async (url: string): Promise<Response> => {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        return response;
+                    }
+                }
+            } catch (e) {
+                // Continue to next attempt
+            }
+            // Try alternative paths
+            const altPaths = [
+                url.startsWith('./') ? url.substring(2) : `./${url}`,
+                url.startsWith('/') ? url : `/${url}`
+            ];
+            for (const altPath of altPaths) {
+                try {
+                    const response = await fetch(altPath);
+                    if (response.ok) {
+                        const contentType = response.headers.get('content-type') || '';
+                        if (contentType.includes('application/json')) {
+                            return response;
+                        }
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            throw new Error(`Could not fetch ${url} as JSON`);
+        };
 
-        attachEventListeners();
+        const [localesResponse, languagesResponse] = await Promise.all([
+            tryFetch('./locales.json'),
+            tryFetch('./languages.json')
+        ]);
+        
+        const localesText = await localesResponse.text();
+        const languagesText = await languagesResponse.text();
+        
+        // Parse JSON with error handling
+        try {
+            locales = JSON.parse(localesText);
+        } catch (e) {
+            console.error('Failed to parse locales.json:', e);
+            throw new Error('Invalid JSON in locales.json');
+        }
+        
+        try {
+            languages = JSON.parse(languagesText);
+        } catch (e) {
+            console.error('Failed to parse languages.json:', e);
+            throw new Error('Invalid JSON in languages.json');
+        }
+        filteredLocales = [...locales];
 
         let initialCountryCode = localStorage.getItem('vcanship_country');
         if (!initialCountryCode) {
@@ -387,6 +459,86 @@ export async function initializeLocaleSwitcher() {
         dispatchLocaleChangeEvent();
 
     } catch (error) {
-        console.error('Failed to initialize Locale Switcher:', error);
+        console.error('Failed to load locale data, but buttons will still work:', error);
+        // Use fallback data so the modal can still open
+        if (locales.length === 0) {
+            locales = [
+                { countryCode: 'GB', countryName: 'United Kingdom', currency: { code: 'GBP', symbol: '£' } },
+                { countryCode: 'US', countryName: 'United States', currency: { code: 'USD', symbol: '$' } },
+                { countryCode: 'CA', countryName: 'Canada', currency: { code: 'CAD', symbol: 'C$' } },
+                { countryCode: 'AU', countryName: 'Australia', currency: { code: 'AUD', symbol: 'A$' } },
+                { countryCode: 'DE', countryName: 'Germany', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'FR', countryName: 'France', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'IT', countryName: 'Italy', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'ES', countryName: 'Spain', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'NL', countryName: 'Netherlands', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'BE', countryName: 'Belgium', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'CH', countryName: 'Switzerland', currency: { code: 'CHF', symbol: 'CHF' } },
+                { countryCode: 'AT', countryName: 'Austria', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'SE', countryName: 'Sweden', currency: { code: 'SEK', symbol: 'kr' } },
+                { countryCode: 'NO', countryName: 'Norway', currency: { code: 'NOK', symbol: 'kr' } },
+                { countryCode: 'DK', countryName: 'Denmark', currency: { code: 'DKK', symbol: 'kr' } },
+                { countryCode: 'FI', countryName: 'Finland', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'PL', countryName: 'Poland', currency: { code: 'PLN', symbol: 'zł' } },
+                { countryCode: 'CZ', countryName: 'Czech Republic', currency: { code: 'CZK', symbol: 'Kč' } },
+                { countryCode: 'IE', countryName: 'Ireland', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'PT', countryName: 'Portugal', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'GR', countryName: 'Greece', currency: { code: 'EUR', symbol: '€' } },
+                { countryCode: 'JP', countryName: 'Japan', currency: { code: 'JPY', symbol: '¥' } },
+                { countryCode: 'CN', countryName: 'China', currency: { code: 'CNY', symbol: '¥' } },
+                { countryCode: 'IN', countryName: 'India', currency: { code: 'INR', symbol: '₹' } },
+                { countryCode: 'SG', countryName: 'Singapore', currency: { code: 'SGD', symbol: 'S$' } },
+                { countryCode: 'MY', countryName: 'Malaysia', currency: { code: 'MYR', symbol: 'RM' } },
+                { countryCode: 'TH', countryName: 'Thailand', currency: { code: 'THB', symbol: '฿' } },
+                { countryCode: 'ID', countryName: 'Indonesia', currency: { code: 'IDR', symbol: 'Rp' } },
+                { countryCode: 'PH', countryName: 'Philippines', currency: { code: 'PHP', symbol: '₱' } },
+                { countryCode: 'VN', countryName: 'Vietnam', currency: { code: 'VND', symbol: '₫' } },
+                { countryCode: 'KR', countryName: 'South Korea', currency: { code: 'KRW', symbol: '₩' } },
+                { countryCode: 'TW', countryName: 'Taiwan', currency: { code: 'TWD', symbol: 'NT$' } },
+                { countryCode: 'HK', countryName: 'Hong Kong', currency: { code: 'HKD', symbol: 'HK$' } },
+                { countryCode: 'AE', countryName: 'United Arab Emirates', currency: { code: 'AED', symbol: 'د.إ' } },
+                { countryCode: 'SA', countryName: 'Saudi Arabia', currency: { code: 'SAR', symbol: '﷼' } },
+                { countryCode: 'IL', countryName: 'Israel', currency: { code: 'ILS', symbol: '₪' } },
+                { countryCode: 'TR', countryName: 'Turkey', currency: { code: 'TRY', symbol: '₺' } },
+                { countryCode: 'ZA', countryName: 'South Africa', currency: { code: 'ZAR', symbol: 'R' } },
+                { countryCode: 'EG', countryName: 'Egypt', currency: { code: 'EGP', symbol: 'E£' } },
+                { countryCode: 'NG', countryName: 'Nigeria', currency: { code: 'NGN', symbol: '₦' } },
+                { countryCode: 'KE', countryName: 'Kenya', currency: { code: 'KES', symbol: 'KSh' } },
+                { countryCode: 'BR', countryName: 'Brazil', currency: { code: 'BRL', symbol: 'R$' } },
+                { countryCode: 'MX', countryName: 'Mexico', currency: { code: 'MXN', symbol: '$' } },
+                { countryCode: 'AR', countryName: 'Argentina', currency: { code: 'ARS', symbol: '$' } },
+                { countryCode: 'CL', countryName: 'Chile', currency: { code: 'CLP', symbol: '$' } },
+                { countryCode: 'CO', countryName: 'Colombia', currency: { code: 'COP', symbol: '$' } },
+                { countryCode: 'PE', countryName: 'Peru', currency: { code: 'PEN', symbol: 'S/.' } },
+                { countryCode: 'NZ', countryName: 'New Zealand', currency: { code: 'NZD', symbol: 'NZ$' } }
+            ];
+            filteredLocales = [...locales];
+        }
+        if (languages.length === 0) {
+            languages = [
+                { code: 'en', name: 'English' },
+                { code: 'es', name: 'Spanish' },
+                { code: 'fr', name: 'French' },
+                { code: 'de', name: 'German' },
+                { code: 'it', name: 'Italian' },
+                { code: 'pt', name: 'Portuguese' },
+                { code: 'nl', name: 'Dutch' },
+                { code: 'pl', name: 'Polish' },
+                { code: 'ru', name: 'Russian' },
+                { code: 'zh', name: 'Chinese' },
+                { code: 'ja', name: 'Japanese' },
+                { code: 'ko', name: 'Korean' },
+                { code: 'ar', name: 'Arabic' },
+                { code: 'hi', name: 'Hindi' },
+                { code: 'th', name: 'Thai' }
+            ];
+        }
+        
+        // Initialize with defaults if needed
+        if (!selectedCountry && locales.length > 0) {
+            selectedCountry = locales[0];
+            selectedLanguage = 'en';
+            updateHeaderControls();
+        }
     }
 }

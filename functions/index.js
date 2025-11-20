@@ -41,15 +41,39 @@ function asHttpsError(error, defaultMessage) {
  * { quotes: Quote[] } where Quote matches the frontend `Quote` type.
  */
 exports.getParcelRates = functions.https.onCall(async (data, context) => {
+  console.log('getParcelRates called with data:', JSON.stringify(data));
+  
   const { originPostcode, destinationPostcode, weightKg, lengthCm, widthCm, heightCm } = data || {};
 
-  // Validate required parameters
-  if (!originPostcode || !destinationPostcode || !weightKg) {
+  // Strict validation with detailed error messages
+  if (!originPostcode || typeof originPostcode !== 'string' || originPostcode.trim().length === 0) {
+    console.error('Invalid originPostcode:', originPostcode);
     throw new functions.https.HttpsError(
       'invalid-argument',
-      'originPostcode, destinationPostcode and weightKg are required.'
+      `Invalid originPostcode: ${originPostcode}. Must be a non-empty string.`
     );
   }
+  
+  if (!destinationPostcode || typeof destinationPostcode !== 'string' || destinationPostcode.trim().length === 0) {
+    console.error('Invalid destinationPostcode:', destinationPostcode);
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      `Invalid destinationPostcode: ${destinationPostcode}. Must be a non-empty string.`
+    );
+  }
+  
+  if (!weightKg || typeof weightKg !== 'number' || isNaN(weightKg) || weightKg <= 0 || weightKg > 1000) {
+    console.error('Invalid weightKg:', weightKg);
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      `Invalid weightKg: ${weightKg}. Must be a number between 0.1 and 1000.`
+    );
+  }
+  
+  // Normalize the values
+  const normalizedOrigin = originPostcode.trim();
+  const normalizedDestination = destinationPostcode.trim();
+  const normalizedWeight = Number(weightKg);
 
   // Check if API keys are configured
   if (!SENDCLOUD_PUBLIC_KEY || !SENDCLOUD_SECRET_KEY) {
@@ -61,13 +85,13 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
           carrierName: 'Royal Mail',
           carrierType: 'Standard Delivery',
           estimatedTransitTime: '3-5 business days',
-          chargeableWeight: weightKg,
+          chargeableWeight: normalizedWeight,
           chargeableWeightUnit: 'kg',
           weightBasis: 'Per Parcel',
           isSpecialOffer: false,
-          totalCost: Math.round(weightKg * 2.5 * 100) / 100,
+          totalCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
           costBreakdown: {
-            baseShippingCost: Math.round(weightKg * 2.5 * 100) / 100,
+            baseShippingCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
             fuelSurcharge: 0,
             estimatedCustomsAndTaxes: 0,
             optionalInsuranceCost: 0,
@@ -79,13 +103,13 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
           carrierName: 'DPD',
           carrierType: 'Express Delivery',
           estimatedTransitTime: '1-2 business days',
-          chargeableWeight: weightKg,
+          chargeableWeight: normalizedWeight,
           chargeableWeightUnit: 'kg',
           weightBasis: 'Per Parcel',
           isSpecialOffer: false,
-          totalCost: Math.round(weightKg * 4.5 * 100) / 100,
+          totalCost: Math.round(normalizedWeight * 4.5 * 100) / 100,
           costBreakdown: {
-            baseShippingCost: Math.round(weightKg * 4.5 * 100) / 100,
+            baseShippingCost: Math.round(normalizedWeight * 4.5 * 100) / 100,
             fuelSurcharge: 0,
             estimatedCustomsAndTaxes: 0,
             optionalInsuranceCost: 0,
@@ -98,7 +122,33 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
   }
 
   try {
-    console.log('Calling Sendcloud API with params:', { originPostcode, destinationPostcode, weightKg });
+    console.log('Calling Sendcloud API with params:', { 
+      originPostcode: normalizedOrigin, 
+      destinationPostcode: normalizedDestination, 
+      weightKg: normalizedWeight 
+    });
+    
+    // Extract country codes from postcodes
+    // If postcode is 2 characters, assume it's a country code
+    // Otherwise, try to extract country or default to GB
+    const getCountryCode = (postcode) => {
+      const trimmed = postcode.trim().toUpperCase();
+      if (trimmed.length === 2) {
+        return trimmed; // Likely a country code
+      }
+      // Try to extract country code from common patterns
+      // For UK postcodes, return GB
+      if (/^[A-Z]{1,2}\d/.test(trimmed)) {
+        return 'GB'; // UK postcode pattern
+      }
+      // Default to GB if we can't determine
+      return 'GB';
+    };
+    
+    const fromCountry = getCountryCode(normalizedOrigin);
+    const toCountry = getCountryCode(normalizedDestination);
+    
+    console.log('Extracted countries:', { fromCountry, toCountry, origin: normalizedOrigin, destination: normalizedDestination });
     
     // This example uses the Sendcloud shipping methods endpoint.
     // You may need to adapt the params to match your Sendcloud account and product setup.
@@ -108,12 +158,11 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
         password: SENDCLOUD_SECRET_KEY,
       },
       params: {
-        // Extract country from postcode or use provided country
-        from_country: originPostcode.length > 2 ? 'GB' : originPostcode.substring(0, 2),
-        to_country: destinationPostcode.length > 2 ? 'GB' : destinationPostcode.substring(0, 2),
-        weight: Math.round(weightKg * 1000), // grams
+        from_country: fromCountry,
+        to_country: toCountry,
+        weight: Math.round(normalizedWeight * 1000), // Convert kg to grams
       },
-      timeout: 10000, // 10 second timeout
+      timeout: 15000, // 15 second timeout
     });
 
     console.log('Sendcloud API response status:', response.status);
@@ -128,13 +177,13 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
             carrierName: 'Royal Mail',
             carrierType: 'Standard Delivery',
             estimatedTransitTime: '3-5 business days',
-            chargeableWeight: weightKg,
+            chargeableWeight: normalizedWeight,
             chargeableWeightUnit: 'kg',
             weightBasis: 'Per Parcel',
             isSpecialOffer: false,
-            totalCost: Math.round(weightKg * 2.5 * 100) / 100,
+            totalCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
             costBreakdown: {
-              baseShippingCost: Math.round(weightKg * 2.5 * 100) / 100,
+              baseShippingCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
               fuelSurcharge: 0,
               estimatedCustomsAndTaxes: 0,
               optionalInsuranceCost: 0,
@@ -148,12 +197,17 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
 
     // Transform Sendcloud shipping methods into frontend Quote[]
     const quotes = methods.map((m) => {
+      // Sendcloud returns price in the currency of the account
       const price = Number(m.price) || 0;
+      const carrierName = m.carrier || m.carrier_name || m.name || 'Unknown Carrier';
+      const serviceName = m.name || m.service_name || 'Standard Service';
+      const transitTime = m.delivery_time || m.min_delivery_time || m.max_delivery_time || 'N/A';
+      
       return {
-        carrierName: m.carrier || m.name || 'Unknown Carrier',
-        carrierType: m.name || 'Standard Service',
-        estimatedTransitTime: m.delivery_time || 'N/A',
-        chargeableWeight: weightKg,
+        carrierName: carrierName,
+        carrierType: serviceName,
+        estimatedTransitTime: transitTime,
+        chargeableWeight: normalizedWeight,
         chargeableWeightUnit: 'kg',
         weightBasis: 'Per Parcel',
         isSpecialOffer: false,
@@ -169,30 +223,46 @@ exports.getParcelRates = functions.https.onCall(async (data, context) => {
       };
     });
 
-    console.log(`Returning ${quotes.length} quotes from Sendcloud`);
+    console.log(`Returning ${quotes.length} live quotes from Sendcloud API`);
+    if (quotes.length === 0) {
+      console.warn('Sendcloud returned empty results, this might indicate API configuration issues');
+    }
     return { quotes };
   } catch (error) {
-    console.error('Sendcloud API error:', error.message, error.response?.data);
+    console.error('Sendcloud API error:', error.message);
+    console.error('Error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: error.config?.url
+    });
+    
+    // If it's an authentication error, log it clearly
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.error('Sendcloud API authentication failed. Please check your API keys.');
+    }
+    
     // Return mock data instead of throwing error so user always gets results
+    // But mark it clearly as fallback
     return {
       quotes: [
         {
           carrierName: 'Royal Mail',
           carrierType: 'Standard Delivery',
           estimatedTransitTime: '3-5 business days',
-          chargeableWeight: weightKg,
+          chargeableWeight: normalizedWeight,
           chargeableWeightUnit: 'kg',
           weightBasis: 'Per Parcel',
           isSpecialOffer: false,
-          totalCost: Math.round(weightKg * 2.5 * 100) / 100,
+          totalCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
           costBreakdown: {
-            baseShippingCost: Math.round(weightKg * 2.5 * 100) / 100,
+            baseShippingCost: Math.round(normalizedWeight * 2.5 * 100) / 100,
             fuelSurcharge: 0,
             estimatedCustomsAndTaxes: 0,
             optionalInsuranceCost: 0,
             ourServiceFee: 0,
           },
-          serviceProvider: 'Sendcloud (Fallback)',
+          serviceProvider: 'Sendcloud (Fallback - API Error)',
         }
       ]
     };
