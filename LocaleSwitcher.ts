@@ -137,7 +137,7 @@ function renderCountryList() {
         <li class="locale-modal-list-item" role="option" id="country-${country.countryCode}" data-country-code="${country.countryCode}">
             <span class="locale-flag">${countryCodeToFlag(country.countryCode)}</span>
             <span class="locale-country-name">${country.countryName}</span>
-            <span class="locale-currency-code">${country.currency.code}</span>
+            <span class="locale-currency-code">${country.currency.symbol} ${country.currency.code}</span>
         </li>
     `).join('');
 
@@ -165,8 +165,11 @@ function renderPreviewPanel() {
                 </select>
             </div>
             <div class="input-wrapper">
-                 <label>Currency</label>
-                 <p style="font-weight: bold;">${modalSelectedCountry.currency.code} (${modalSelectedCountry.currency.symbol})</p>
+                 <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Currency</label>
+                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: var(--background-color); border-radius: 8px; border: 1px solid var(--border-color);">
+                     <span style="font-size: 1.5rem; font-weight: bold;">${modalSelectedCountry.currency.symbol}</span>
+                     <span style="font-weight: 600; font-size: 1.1rem;">${modalSelectedCountry.currency.code}</span>
+                 </div>
             </div>
         </div>
     `;

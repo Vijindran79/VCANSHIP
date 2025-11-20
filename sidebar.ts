@@ -17,11 +17,8 @@ export const getAllServicesConfig = (): { id: Service, name: string, icon: strin
         { id: 'railway', name: t('sidebar.railway'), icon: 'fa-solid fa-train-subway' },
         { id: 'inland', name: t('sidebar.inland'), icon: 'fa-solid fa-truck' },
         { id: 'bulk', name: t('sidebar.bulk'), icon: 'fa-solid fa-anchor' },
-        { id: 'rivertug', name: t('sidebar.rivertug'), icon: 'fa-solid fa-ship' },
-        { id: 'warehouse', name: t('sidebar.warehouse'), icon: 'fa-solid fa-warehouse' },
         { id: 'schedules', name: t('sidebar.schedules'), icon: 'fa-solid fa-calendar-days' },
         { id: 'ecommerce', name: t('sidebar.ecommerce'), icon: 'fa-solid fa-store' },
-        { id: 'register', name: t('sidebar.tradeFinance'), icon: 'fa-solid fa-money-check-dollar' },
         { id: 'secure-trade', name: 'Secure Trade', icon: 'fa-solid fa-shield-halved' },
         { id: 'service-provider-register', name: t('sidebar.partner'), icon: 'fa-solid fa-handshake' }
     ];

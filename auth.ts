@@ -159,7 +159,7 @@ async function handleSocialLogin(providerName: 'Google' | 'Apple') {
     if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
     } else {
-        provider = new AppleAuthProvider();
+        provider = new AppleAuthProvider('apple.com');
     }
 
     toggleLoading(true, t('loading.signing_in_with').replace('{provider}', providerName));

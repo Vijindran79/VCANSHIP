@@ -214,8 +214,14 @@ function initializeMultiFabAndMobileMenu() {
         if (target.closest('#close-mobile-menu-btn')) {
             closeMenu();
         }
-        if (target.closest('.static-link, .sidebar-btn-service, #mobile-login-btn, #mobile-logout-btn, #settings-language-btn')) {
+        // Don't close menu for language button - let LocaleSwitcher handle it
+        if (target.closest('.static-link, .sidebar-btn-service, #mobile-login-btn, #mobile-logout-btn')) {
             closeMenu();
+        }
+        // Handle language button separately - open modal and close menu
+        if (target.closest('#settings-language-btn')) {
+            closeMenu();
+            // The LocaleSwitcher will handle opening the modal via its own event listener
         }
     });
 }
@@ -313,6 +319,9 @@ async function initializeCoreApp() {
     // CRITICAL FIX: Await the initialization of i18n to ensure translations are loaded
     // before any other UI component tries to access them. This prevents race conditions.
     await initializeI18n();
+
+    // Initialize locale switcher (language/currency/country selector)
+    await initializeLocaleSwitcher();
 
     // Now that translations are ready, initialize the rest of the app.
     initializeStaticPages();

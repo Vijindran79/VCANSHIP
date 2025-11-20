@@ -1,0 +1,211 @@
+{
+  "landing": {
+    "hero_title": "Global Shipping, Intelligently Simplified",
+    "hero_subtitle": "Vcanship finds smart routes and competitive rates for your parcels and freight.",
+    "other_services_title": "Our Other Services",
+    "other_services_subtitle": "From a single document to a full container load, we've got you covered.",
+    "fcl_title": "Sea Freight FCL",
+    "fcl_subtitle": "Exclusive use of a full container for your goods.",
+    "lcl_title": "Sea Freight LCL",
+    "lcl_subtitle": "Cost-effective shared container space for smaller loads.",
+    "ecommerce_title": "E-commerce Fulfillment",
+    "ecommerce_subtitle": "Streamlined shipping solutions for online businesses.",
+    "secure_trade_title": "Trade with Confidence. Ship without Surprises.",
+    "seo": {
+      "business": "Fast Global Shipping|Competitive Freight Rates|Reliable Logistics Solutions|Worldwide Delivery Network|Efficient Cargo Management",
+      "emotional": "Ship with Confidence|Your Trusted Shipping Partner|Seamless Global Trade|Connecting Markets Worldwide|Simplified Shipping Experience"
+    }
+  },
+  "header": {
+    "track": "Track",
+    "loginSignup": "Login / Sign Up"
+  },
+  "footer": {
+    "copyright": "© 2024 Vcanship by Vcan Resources. All Rights Reserved.",
+    "inspectorPortal": "Inspector Portal"
+  },
+  "loading": {
+    "default": "Please wait..."
+  },
+  "mobile_menu": {
+    "dashboard": "Dashboard",
+    "address_book": "Address Book",
+    "account_settings": "Account Settings",
+    "logout": "Log Out",
+    "login": "Log In",
+    "services": "Services"
+  },
+  "sidebar": {
+    "services": "Services",
+    "apiHub": "API Hub",
+    "helpCenter": "Help Center",
+    "vehicle": "Vehicle Shipping",
+    "railway": "Railway Freight",
+    "inland": "Inland Transport",
+    "bulk": "Bulk Cargo",
+    "rivertug": "River & Tug",
+    "warehouse": "Warehouse",
+    "schedules": "Schedules",
+    "ecommerce": "E-commerce",
+    "tradeFinance": "Trade Finance",
+    "partner": "Partner Registration"
+  },
+  "modals": {
+    "locale": {
+      "title": "Select Region & Language",
+      "description": "Choose your country and preferred language to customize your experience.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "search_placeholder": "Search countries..."
+    },
+    "usage_limit": {
+      "guest_title": "Usage Limit Reached",
+      "guest_desc": "You've reached the limit for guest users. Please sign up to continue using our services.",
+      "guest_cta": "Sign Up Now",
+      "free_title": "Usage Limit Reached",
+      "free_desc": "You've reached the limit for free tier users. Upgrade to continue using our services.",
+      "free_cta": "Upgrade Now"
+    },
+    "dropoff": {
+      "title": "Nearby Drop-off Locations",
+      "loading": "Finding locations..."
+    },
+    "track": {
+      "title": "Track Your Shipment",
+      "label": "Enter Tracking ID",
+      "placeholder": "e.g., PAR-123456"
+    },
+    "inspector": {
+      "desc": "This area is for authorized personnel only."
+    },
+    "agreement": {
+      "title": "Shipping Agreement",
+      "text": "This is a legally binding agreement... (Full text would go here)",
+      "checkbox_label": "I have read and agree to the terms and conditions.",
+      "download_pdf": "Download PDF",
+      "proceed": "Proceed"
+    },
+    "tracker": {
+      "title": "Vcanship SmartTracker™",
+      "desc": "Our GPS tracking device offers real-time location updates for your peace of mind. Simply place it in your baggage before shipping. (This is a simulated feature for demonstration)."
+    },
+    "prelaunch": {
+      "title": "Coming Soon!",
+      "desc": "This feature is currently in development and will be launching soon. Stay tuned!"
+    },
+    "breakdown": {
+      "title": "Price Breakdown"
+    }
+  },
+  "toast": {
+    "tracking_not_implemented": "Tracking for {id} is not yet implemented.",
+    "pro_coming_soon": "Pro features coming soon!",
+    "invalid_email": "Please enter a valid email address.",
+    "magic_link_sent": "Magic link sent to {email}. Please check your inbox.",
+    "magic_link_failed": "Failed to send magic link. Please try again.",
+    "social_signin_failed": "Social sign-in failed. Please try again.",
+    "signin_cancelled": "Sign-in cancelled.",
+    "account_exists": "An account with this email already exists.",
+    "social_signin_failed_provider": "Sign-in with {provider} failed. Please try again.",
+    "password_required": "Password is required.",
+    "fill_all_fields": "Please fill in all fields.",
+    "password_length": "Password must be at least 6 characters long.",
+    "name_required_signup": "Name is required for sign up.",
+    "resend_email_not_found": "Email not found. Please check and try again.",
+    "email_required_for_signin": "Email is required for sign in.",
+    "magic_link_signin_failed": "Magic link sign-in failed. Please try again.",
+    "magic_link_invalid": "Invalid or expired magic link. Please request a new one.",
+    "address_updated": "Address updated successfully.",
+    "address_added": "Address added successfully.",
+    "address_deleted": "Address deleted successfully.",
+    "settings_saved": "Settings saved successfully."
+  },
+  "lookup_counter": {
+    "guest": "Guest lookups remaining: {count}",
+    "free": "AI lookups remaining: {count}"
+  },
+  "chatbot": {
+    "title": "Vcanship Assistant",
+    "faq_title": "Frequently Asked Questions:",
+    "input_placeholder": "Ask a question...",
+    "error": "Sorry, I encountered an error. Please try again.",
+    "suggestions": {
+      "services": "What services do you offer?",
+      "tracking": "How do I track a package?",
+      "fcl_lcl": "What is the difference between FCL and LCL?",
+      "cheap_shipping": "Can you help me find a cheap shipping option?"
+    }
+  },
+  "fab": {
+    "menu": "Menu",
+    "chat": "Chat"
+  },
+  "auth": {
+    "promo_title": "Unlock a World of Logistics",
+    "promo_desc": "Join Vcanship to access exclusive rates, real-time tracking, and a seamless shipping experience from start to finish.",
+    "title_signin_signup": "Sign In or Create Account",
+    "desc_email": "Enter your email to get started.",
+    "placeholder_email": "Email Address",
+    "continue": "Continue",
+    "or": "OR",
+    "continue_google": "Continue with Google",
+    "continue_apple": "Continue with Apple",
+    "welcome_back": "Welcome Back!",
+    "placeholder_password": "Password",
+    "forgot_password": "Forgot Password?",
+    "signin": "Sign In",
+    "magic_link_instead": "Email me a magic link instead",
+    "title_create_account": "Create Your Account",
+    "placeholder_name": "Full Name",
+    "placeholder_create_password": "Create a password",
+    "create_account": "Create Account",
+    "magic_link_signup": "Sign up with a magic link instead",
+    "check_email": "Check Your Email",
+    "resend_magic_link": "Didn't receive it? Resend link",
+    "back_to_start": "Back to Start"
+  },
+  "help_page": {
+    "title": "Help Center",
+    "subtitle": "Find answers to common questions about our services.",
+    "search_placeholder": "Search for help...",
+    "voice_search_aria": "Voice search",
+    "categories": {
+      "all": "All Categories",
+      "general": "General",
+      "shipping": "Shipping",
+      "booking": "Booking",
+      "billing": "Billing",
+      "account": "Account"
+    },
+    "faqs": [
+      {
+        "category": "General",
+        "question": "What is Vcanship?",
+        "answer": "Vcanship is a global shipping platform that helps you find the best routes and rates for your parcels and freight."
+      },
+      {
+        "category": "Shipping",
+        "question": "How do I track my shipment?",
+        "answer": "You can track your shipment using the tracking number provided. Click the 'Track' button in the header to enter your tracking ID."
+      },
+      {
+        "category": "Booking",
+        "question": "How do I book a shipment?",
+        "answer": "Select a service from the main page, fill in the shipment details, and complete the booking process."
+      },
+      {
+        "category": "Billing",
+        "question": "What payment methods do you accept?",
+        "answer": "We accept various payment methods including credit cards, bank transfers, and digital wallets."
+      },
+      {
+        "category": "Account",
+        "question": "How do I create an account?",
+        "answer": "Click on 'Login / Sign Up' in the header and follow the registration process."
+      }
+    ]
+  }
+}
+
+
+

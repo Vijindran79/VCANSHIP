@@ -83,6 +83,69 @@ export async function validateAddress(address: string): Promise<any | null> {
     }
 }
 
+
+/**
+ * Fetch live parcel rates via a secure Firebase Callable Function that talks to Sendcloud.
+ * This replaces any AI-based quote generation for parcel shipments.
+ */
+export async function getParcelRatesFromBackend(params: {
+    originPostcode: string;
+    destinationPostcode: string;
+    weightKg: number;
+    lengthCm?: number;
+    widthCm?: number;
+    heightCm?: number;
+}): Promise<Quote[]> {
+    try {
+        const getParcelRatesFn = functions.httpsCallable('getParcelRates');
+        const result = await getParcelRatesFn(params);
+        const data = result.data as { quotes: Quote[] };
+        return data.quotes || [];
+    } catch (error) {
+        handleFirebaseError(error, 'parcel rate lookup');
+        throw error;
+    }
+}
+
+export interface FclRatesParams {
+    originPort: string;
+    destinationPort: string;
+    containerType: string;
+    totalWeightTon?: number;
+}
+
+export interface FclComplianceRequirement {
+    title: string;
+    description: string;
+}
+
+export interface FclComplianceReport {
+    status: string;
+    summary: string;
+    requirements: FclComplianceRequirement[];
+}
+
+export interface FclRatesResponse {
+    quotes: Quote[];
+    complianceReport: FclComplianceReport;
+}
+
+/**
+ * Fetch live FCL container rates via a secure Firebase Callable Function that talks to SeaRates.
+ * This replaces any AI-based quote generation for FCL shipments.
+ */
+export async function getFclRatesFromBackend(params: FclRatesParams): Promise<FclRatesResponse> {
+    try {
+        const getFclRatesFn = functions.httpsCallable('getFclRates');
+        const result = await getFclRatesFn(params);
+        const data = result.data as FclRatesResponse;
+        return data;
+    } catch (error) {
+        handleFirebaseError(error, 'FCL rate lookup');
+        throw error;
+    }
+}
+
 /**
  * Generic function to invoke a Gemini-powered Firebase Function.
  * @param functionName The name of the Firebase Function to call.

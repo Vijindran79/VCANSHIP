@@ -1,14 +1,13 @@
 // ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import { jsPDF } from 'jspdf';
 import { State, setState, type Quote, type Address, resetParcelState, type DropOffLocation, ApiResponse } from './state';
-import { getHsCodeSuggestions, checkAndDecrementLookup } from './api';
+import { checkAndDecrementLookup, getParcelRatesFromBackend } from './api';
 import { showToast, switchPage, toggleLoading } from './ui';
 import { DOMElements } from './dom';
 import { t } from './i18n';
 import { attachDynamicPostcodeValidation } from './validation';
 import { MARKUP_CONFIG } from './pricing';
 import { Type } from '@google/genai';
-import { firebaseConfig } from './firebase';
 
 let allQuotes: Quote[] = [];
 let carriers: string[] = [];
@@ -159,25 +158,35 @@ function renderConfirmationView(): string {
 async function handleFormSubmit(e: Event) {
     e.preventDefault();
     if (!checkAndDecrementLookup()) return;
-    
-    toggleLoading(true, "Finding best quotes...");
+
+    toggleLoading(true, "Fetching live Sendcloud rates...");
 
     const origin = (document.getElementById('origin-postcode') as HTMLInputElement).value;
     const destination = (document.getElementById('destination-postcode') as HTMLInputElement).value;
-    const weight = parseFloat((document.getElementById('package-weight') as HTMLInputElement).value);
+    const weightInput = (document.getElementById('package-weight') as HTMLInputElement).value;
+    const weight = parseFloat(weightInput);
+
+    if (!origin || !destination || isNaN(weight) || weight <= 0) {
+        toggleLoading(false);
+        showToast("Please enter valid origin, destination and weight before getting a quote.", "warning");
+        return;
+    }
     
     setState({ parcelOrigin: { postcode: origin }, parcelDestination: { postcode: destination }, parcelInitialWeight: weight });
 
     try {
-        if (!State.api) throw new Error("API not initialized");
-        const prompt = `Act as a logistics pricing API. Based on the following parcel shipment, provide a JSON response containing realistic quotes from 4-5 different carriers (like DHL, UPS, FedEx, DPD, Evri). Origin: ${origin}. Destination: ${destination}. Weight: ${weight} kg. Currency: ${State.currentCurrency.code}. For each quote, provide: carrierName, carrierType (e.g., Express Drop-off), totalCost, estimatedTransitTime (e.g., "1-2 working days"), serviceProvider ('Vcanship AI'), and a boolean 'isSpecialOffer'. Your response MUST be a single JSON object with a "quotes" key, which is an array of quote objects.`;
-        
-        const responseSchema = { type: Type.OBJECT, properties: { quotes: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { carrierName: { type: Type.STRING }, carrierType: { type: Type.STRING }, totalCost: { type: Type.NUMBER }, estimatedTransitTime: { type: Type.STRING }, serviceProvider: { type: Type.STRING }, isSpecialOffer: { type: Type.BOOLEAN } } } } } };
+        // Call backend Firebase Function that integrates with Sendcloud.
+        const quotes = await getParcelRatesFromBackend({
+            originPostcode: origin,
+            destinationPostcode: destination,
+            weightKg: weight,
+        });
 
-        const result = await State.api.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: 'application/json', responseSchema } });
-        const response: { quotes: Quote[] } = JSON.parse(result.text);
-
-        allQuotes = response.quotes.map(q => ({ ...q, chargeableWeight: weight, chargeableWeightUnit: 'kg' }));
+        allQuotes = quotes.map(q => ({
+            ...q,
+            chargeableWeight: weight,
+            chargeableWeightUnit: 'kg',
+        }));
         
         currentView = 'results';
         renderCurrentView();

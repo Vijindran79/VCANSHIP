@@ -1,23 +1,14 @@
 // firebase.ts
-// FIX: Use side-effect imports and the global `window.firebase` object.
-// The Firebase v9 compatibility scripts are packaged as UMD modules. When loaded via importmap,
-// they don't expose a standard ES module interface, leading to a loop of import errors.
-// This approach executes the scripts, which then correctly attach to the global `window.firebase` object,
-// resolving the `Cannot read properties of undefined` errors reliably.
-import "firebase/compat/app";
+// Updated to use the Firebase compat SDK directly from npm, instead of relying on window.firebase.
+// This works correctly with Vite's bundler in both dev and production builds.
+
+import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import "firebase/compat/functions";
 import "firebase/compat/storage";
 import { v4 as uuidv4 } from 'uuid';
 import { State } from './state';
-
-// Add a type declaration for the global firebase object to satisfy TypeScript
-declare global {
-  interface Window {
-    firebase: any;
-  }
-}
 
 // Your web app's Firebase configuration from user prompt
 export const firebaseConfig = {
@@ -29,17 +20,13 @@ export const firebaseConfig = {
   appId: "1:685756131515:web:55eb447560c628f12da19e"
 };
 
-// Access the firebase object from the window
-const firebase = window.firebase;
-
-
 // Initialize Firebase
-if (firebase && !firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
 
-// Export Firebase services
+// Export Firebase services (compat APIs)
 export const auth = firebase.auth();
 export const db = firebase.firestore();
 export const functions = firebase.functions();

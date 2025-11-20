@@ -3,10 +3,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { State, setState, resetFclState, Quote, FclDetails, ComplianceDoc, FclContainer } from './state';
 import { switchPage, updateProgressBar, showToast, toggleLoading } from './ui';
-import { getHsCodeSuggestions } from './api';
 import { MARKUP_CONFIG } from './pricing';
-import { checkAndDecrementLookup } from './api';
-import { Type } from '@google/genai';
+import { checkAndDecrementLookup, getFclRatesFromBackend, type FclComplianceReport } from './api';
 import { createQuoteCard } from './components';
 import { blobToBase64 } from './utils';
 
@@ -286,87 +284,50 @@ async function handleFclFormSubmit(e: Event) {
     setState({ fclDetails: details });
 
     try {
-        if (!State.api) throw new Error("API not initialized");
-        const containerSummary = details.containers.map(c => `${c.quantity} x ${c.type}`).join(', ');
-        const prompt = `Act as a logistics pricing expert for FCL sea freight. Provide a JSON response containing realistic quotes from 3 different carriers (e.g., Maersk, MSC, CMA CGM) and a compliance checklist.
-        - Route: From ${pickupPort || pickupAddress?.country} to ${deliveryPort || deliveryAddress?.country}.
-        - Containers: ${containerSummary}.
-        - Cargo: ${details.cargoDescription}.
-        - HS Code: ${hsCode || 'Not Provided'}.
-        - Currency: ${State.currentCurrency.code}.
-        
-        The response should be a JSON object with two keys: "quotes" and "complianceReport".
-        The "quotes" key should be an array of objects. For each quote object, provide carrierName, estimatedTransitTime, and totalCost. Apply a ${MARKUP_CONFIG.fcl.standard * 100}% markup to a realistic base cost to calculate the totalCost.
-        The "complianceReport" should have status, summary, and a list of requirements (each with title and description, e.g., Commercial Invoice, Packing List).
-        Your response MUST be a single JSON object matching the provided schema. Do not include any text outside the JSON.`;
-        
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                quotes: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            carrierName: { type: Type.STRING },
-                            estimatedTransitTime: { type: Type.STRING },
-                            totalCost: { type: Type.NUMBER }
-                        }
-                    }
-                },
-                complianceReport: {
-                    type: Type.OBJECT,
-                    properties: {
-                        status: { type: Type.STRING },
-                        summary: { type: Type.STRING },
-                        requirements: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    title: { type: Type.STRING },
-                                    description: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
+        // Total weight in TON for backend (optional, derived from containers if provided in KG).
+        const totalWeightKg = details.containers.reduce((sum, c) => {
+            const weightKg = c.weightUnit === 'TON' ? c.weight * 1000 : c.weight;
+            return sum + (weightKg || 0);
+        }, 0);
+        const totalWeightTon = totalWeightKg > 0 ? totalWeightKg / 1000 : undefined;
 
-        const result = await State.api.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: responseSchema
-            }
+        const primaryContainer = details.containers[0];
+
+        const { quotes, complianceReport } = await getFclRatesFromBackend({
+            originPort: pickupPort || pickupAddress?.country || '',
+            destinationPort: deliveryPort || deliveryAddress?.country || '',
+            containerType: primaryContainer?.type || '20GP',
+            totalWeightTon,
         });
 
-        const parsedResult = JSON.parse(result.text);
-
-        const quotesWithBreakdown: Quote[] = parsedResult.quotes.map((q: any) => ({
+        const quotesWithBreakdown: Quote[] = quotes.map((q: Quote) => ({
             ...q,
-            carrierType: "Ocean Carrier",
-            chargeableWeight: 0,
-            chargeableWeightUnit: 'N/A',
+            carrierType: q.carrierType || "Ocean Carrier",
+            chargeableWeight: totalWeightKg || 0,
+            chargeableWeightUnit: totalWeightKg ? 'KG' : 'N/A',
             weightBasis: 'Per Container',
-            isSpecialOffer: Math.random() < 0.2, // 20% chance of being a special offer
-            costBreakdown: {
+            isSpecialOffer: q.isSpecialOffer ?? false,
+            costBreakdown: q.costBreakdown || {
                 baseShippingCost: q.totalCost / (1 + MARKUP_CONFIG.fcl.standard),
                 fuelSurcharge: 0,
                 estimatedCustomsAndTaxes: 0,
                 optionalInsuranceCost: 0,
-                ourServiceFee: q.totalCost - (q.totalCost / (1 + MARKUP_CONFIG.fcl.standard))
+                ourServiceFee: q.totalCost - (q.totalCost / (1 + MARKUP_CONFIG.fcl.standard)),
             },
-            serviceProvider: 'Vcanship AI'
+            serviceProvider: q.serviceProvider || 'SeaRates',
         }));
 
-        const docs: ComplianceDoc[] = parsedResult.complianceReport.requirements.map((r: any) => ({ ...r, id: `doc-${r.title.replace(/\s/g, '-')}`, status: 'pending', file: null, required: true }));
-        
+        const docs: ComplianceDoc[] = (complianceReport.requirements || []).map((r: any) => ({
+            ...r,
+            id: `doc-${r.title.replace(/\s/g, '-')}`,
+            status: 'pending',
+            file: null,
+            required: true,
+        }));
+
         currentFclQuotes = quotesWithBreakdown;
         setState({ fclComplianceDocs: docs });
-        renderFclResultsStep(parsedResult.complianceReport);
+        renderFclResultsStep(complianceReport);
         goToFclStep(2);
     } catch (error) {
         console.error("FCL quote error:", error);
@@ -391,8 +352,8 @@ function renderFclResultsStep(complianceReport: any) {
                 </div>
              </div>
              <div class="quote-confirmation-panel">
-                <h4>This is an AI Estimate</h4>
-                <p>A Vcanship agent will contact you to confirm the final details and provide an exact quote for your approval before booking.</p>
+                <h4>Live FCL Rate Preview</h4>
+                <p>These rates come from SeaRates based on your route and container details. Our team may contact you to confirm cargo information before final booking.</p>
             </div>
         `;
     }
