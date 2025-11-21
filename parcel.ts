@@ -195,6 +195,10 @@ function renderFormView(): string {
     `;
 }
 
+// NOTE: Address autocomplete via Geoapify was causing CORS issues on production.
+// For now we keep the postcode validation helper only and disable live suggestions
+// to keep the app stable. The helper function is intentionally omitted here.
+
 function getStepLabel(step: number): string {
     const labels = [
         t('parcel.steps.sender'),
@@ -1211,7 +1215,20 @@ async function findDropoffLocations(postcode: string) {
 function attachFormListeners() {
     const form = document.getElementById('parcel-details-form');
     form?.addEventListener('submit', handleFormSubmit);
-    
+
+    // Re-attach dynamic postcode validation for sender and recipient
+    const senderCountryInput = document.getElementById('sender-country') as HTMLInputElement | null;
+    const senderPostcodeInput = document.getElementById('sender-postcode') as HTMLInputElement | null;
+    if (senderCountryInput && senderPostcodeInput) {
+        attachDynamicPostcodeValidation(senderCountryInput, senderPostcodeInput);
+    }
+
+    const recipientCountryInput = document.getElementById('recipient-country') as HTMLInputElement | null;
+    const recipientPostcodeInput = document.getElementById('recipient-postcode') as HTMLInputElement | null;
+    if (recipientCountryInput && recipientPostcodeInput) {
+        attachDynamicPostcodeValidation(recipientCountryInput, recipientPostcodeInput);
+    }
+
     // Previous button
     document.getElementById('parcel-prev-btn')?.addEventListener('click', () => {
         if (currentStep > 1) {

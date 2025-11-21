@@ -11,6 +11,7 @@ const axios = require('axios');
 const SENDCLOUD_PUBLIC_KEY = functions.config().sendcloud?.public_key || process.env.SENDCLOUD_PUBLIC_KEY;
 const SENDCLOUD_SECRET_KEY = functions.config().sendcloud?.secret_key || process.env.SENDCLOUD_SECRET_KEY;
 const SEARATES_API_KEY = functions.config().searates?.api_key || process.env.SEARATES_API_KEY;
+const GEOAPIFY_KEY = (functions.config().geoapify && functions.config().geoapify.key) || process.env.GEOAPIFY_KEY;
 
 /**
  * Normalises errors into HttpsError for the client.
@@ -23,6 +24,82 @@ function asHttpsError(error, defaultMessage) {
   console.error(defaultMessage, error);
   return new functions.https.HttpsError('internal', message);
 }
+
+/**
+ * Callable function to get address suggestions from Geoapify.
+ *
+ * Expected input:
+ * {
+ *   query: string;        // Free text (postcode, street, city, etc.)
+ *   countryCode?: string; // Optional ISO 2-letter country code, e.g. "GB", "US"
+ *   limit?: number;       // Optional max suggestions (default 5)
+ * }
+ *
+ * Returns:
+ * {
+ *   suggestions: {
+ *     formatted: string;
+ *     street?: string;
+ *     city?: string;
+ *     postcode?: string;
+ *     country?: string;
+ *     lat?: number;
+ *     lon?: number;
+ *   }[]
+ * }
+ */
+exports.getAddressSuggestions = functions.https.onCall(async (data, context) => {
+  const { query, countryCode, limit } = data || {};
+
+  if (!query || typeof query !== 'string' || query.trim().length < 3) {
+    // Too short to search; return empty list rather than throwing
+    return { suggestions: [] };
+  }
+
+  if (!GEOAPIFY_KEY) {
+    console.warn('Geoapify API key not configured. Returning empty suggestions.');
+    return { suggestions: [] };
+  }
+
+  try {
+    const params = {
+      text: query.trim(),
+      apiKey: GEOAPIFY_KEY,
+      limit: typeof limit === 'number' && limit > 0 && limit <= 10 ? limit : 5,
+    };
+
+    // Apply optional country filter if provided
+    if (countryCode && typeof countryCode === 'string' && countryCode.trim().length === 2) {
+      params.filter = `countrycode:${countryCode.trim().toLowerCase()}`;
+    }
+
+    const response = await axios.get('https://api.geoapify.com/v1/geocode/autocomplete', {
+      params,
+      timeout: 10000,
+    });
+
+    const features = (response.data && response.data.features) || [];
+
+    const suggestions = features.map((f) => {
+      const p = f.properties || {};
+      return {
+        formatted: p.formatted || p.address_line1 || '',
+        street: p.street || p.address_line1 || '',
+        city: p.city || p.town || p.village || '',
+        postcode: p.postcode || '',
+        country: p.country || '',
+        lat: typeof p.lat === 'number' ? p.lat : undefined,
+        lon: typeof p.lon === 'number' ? p.lon : undefined,
+      };
+    });
+
+    return { suggestions };
+  } catch (error) {
+    console.error('Geoapify autocomplete error:', error.message, error.response && error.response.data);
+    // For robustness, return empty suggestions instead of failing the call
+    return { suggestions: [] };
+  }
+});
 
 /**
  * Callable function to get live parcel rates from Sendcloud.

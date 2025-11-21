@@ -384,7 +384,8 @@ export async function handleLogout() {
  * Sets up all event listeners for the authentication flow.
  */
 export function initializeAuth() {
-    toggleLoading(true, t('loading.authenticating'));
+    // Use a literal string here so we never depend on a translation key
+    toggleLoading(true, 'Please wait...');
     auth.onAuthStateChanged((user: any) => {
         if (user) {
             const userProfile = { name: user.displayName || user.email!.split('@')[0], email: user.email! };

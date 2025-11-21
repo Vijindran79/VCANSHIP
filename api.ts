@@ -154,6 +154,45 @@ export async function getParcelRatesFromBackend(params: {
     }
 }
 
+// --- ADDRESS SUGGESTIONS ---
+
+export interface AddressSuggestion {
+    formatted: string;
+    street?: string;
+    city?: string;
+    postcode?: string;
+    country?: string;
+    lat?: number;
+    lon?: number;
+}
+
+export async function getAddressSuggestionsFromBackend(params: {
+    query: string;
+    countryCode?: string;
+    limit?: number;
+}): Promise<AddressSuggestion[]> {
+    try {
+        if (!params.query || params.query.trim().length < 3) {
+            return [];
+        }
+
+        console.log('Calling getAddressSuggestions with params:', params);
+        const getAddressSuggestionsFn = functions.httpsCallable('getAddressSuggestions');
+        const result = await getAddressSuggestionsFn({
+            query: params.query.trim(),
+            countryCode: params.countryCode,
+            limit: params.limit,
+        });
+
+        const data = result.data as { suggestions: AddressSuggestion[] };
+        return data.suggestions || [];
+    } catch (error: any) {
+        console.error('Error calling getAddressSuggestions:', error);
+        // Silent fallback: just return no suggestions
+        return [];
+    }
+}
+
 export interface FclRatesParams {
     originPort: string;
     destinationPort: string;
