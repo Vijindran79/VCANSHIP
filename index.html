@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCanship - Affordable Freight Forwarding & Global Shipping Services</title>
+    <meta name="description"
+        content="Vcanship offers cheap freight forwarding, parcel shipping, container transport, bulk cargo, tankers, and break bulk services. Get instant quotes for international shipping.">
+    <meta name="keywords"
+        content="vcanship, vcan, cheap freight, cheapest freight, freight forwarder, shipping logistics, parcel delivery, container shipping, bulk cargo, tankers, break bulk, 3pl logistics, shiiping, cheep freight, cheepest freight, forwader, forwaders">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="icon" type="image/svg+xml" href="./logo.svg">
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FreightService",
+      "name": "VCanship OneStop Logistics",
+      "description": "Global freight forwarding and shipping services",
+      "provider": {
+        "@type": "Organization",
+        "name": "Vcan Resources",
+        "telephone": "+1-251-316-6847",
+        "email": "vg@vcnresources.com"
+      },
+      "areaServed": "Worldwide",
+      "offers": {
+        "@type": "Offer",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+    </script>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2",
+    "monaco-editor": "https://cdn.jsdelivr.net/npm/monaco-editor@0.49.0/+esm",
+    "next": "https://aistudiocdn.com/next@^15.5.4",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "react-hook-form": "https://aistudiocdn.com/react-hook-form@^7.63.0",
+    "@hookform/resolvers/": "https://aistudiocdn.com/@hookform/resolvers@^5.2.2/",
+    "zod": "https://aistudiocdn.com/zod@^4.1.11",
+    "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
+    "firebase/compat/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
+    "firebase/compat/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js",
+    "firebase/compat/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js",
+    "firebase/compat/functions": "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js",
+    "firebase/compat/storage": "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.4.0/",
+    "@/chatbot": "./chatbot.js",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+    <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+    <div id="top-ticker-banner"></div>
+    <div id="app">
+        <header>
+            <a href="#" class="logo static-link" data-page="landing"><strong>Vcan</strong><span>Ship</span></a>
+            <nav class="header-main-nav">
+                <button class="header-btn static-link" id="header-dashboard-link" data-page="dashboard"
+                    style="display: none;">
+                    <i class="fa-solid fa-table-columns"></i> <span data-i18n="mobile_menu.dashboard">Dashboard</span>
+                </button>
+            </nav>
+            <div class="header-right-actions">
+                <button class="header-btn" id="track-btn">
+                    <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="header.track">Track</span>
+                </button>
+                <div class="header-user-actions">
+                    <button class="header-btn locale-header-btn" id="header-locale-btn"
+                        aria-label="Change region and language" data-i18n-aria="aria.change_locale">
+                        <i class="fa-solid fa-globe"></i>
+                        <span class="locale-flag" id="header-locale-flag"></span>
+                        <div class="locale-button-text">
+                            <span class="country-name" id="header-locale-country"></span>
+                            <span class="currency-info" id="header-locale-info"></span>
+                        </div>
+                    </button>
+                    <button class="header-icon-btn theme-switch" aria-label="Toggle theme"
+                        data-i18n-aria="aria.toggle_theme">
+                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <div class="header-dropdown-container hidden" id="my-account-dropdown">
+                        <button class="header-btn" id="my-account-btn">
+                            <div class="user-avatar" id="user-avatar"></div>
+                            <span id="user-name-display"></span>
+                            <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item static-link" data-page="dashboard"><i
+                                    class="fa-solid fa-table-columns"></i> <span
+                                    data-i18n="mobile_menu.dashboard">Dashboard</span></a>
+                            <a href="#" class="dropdown-item static-link" data-page="address-book"><i
+                                    class="fa-solid fa-address-book"></i> <span
+                                    data-i18n="mobile_menu.address_book">Address Book</span></a>
+                            <a href="#" class="dropdown-item static-link" data-page="settings"><i
+                                    class="fa-solid fa-gear"></i> <span
+                                    data-i18n="mobile_menu.account_settings">Settings</span></a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" id="logout-btn"><i
+                                    class="fa-solid fa-arrow-right-from-bracket"></i> <span
+                                    data-i18n="mobile_menu.logout">Log Out</span></a>
+                        </div>
+                    </div>
+                    <button class="header-btn login" id="login-signup-btn" data-i18n="header.loginSignup">Login / Sign
+                        Up</button>
+                </div>
+                <button class="header-icon-btn" id="mobile-menu-btn" aria-label="Open menu"
+                    data-i18n-aria="aria.open_menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </header>
+        <div class="main-container">
+            <aside class="sidebar" id="app-sidebar">
+                <!-- Sidebar content will be injected by sidebar.ts -->
+            </aside>
+            <main id="page-container">
+                <!-- Pages will be injected here -->
+                <div id="page-landing" class="page active"></div>
+                <div id="page-parcel" class="page"></div>
+                <div id="page-baggage" class="page"></div>
+                <div id="page-fcl" class="page"></div>
+                <div id="page-lcl" class="page"></div>
+                <div id="page-airfreight" class="page"></div>
+                <div id="page-vehicle" class="page"></div>
+                <div id="page-railway" class="page"></div>
+                <div id="page-inland" class="page"></div>
+                <div id="page-bulk" class="page"></div>
+                <div id="page-rivertug" class="page"></div>
+                <div id="page-warehouse" class="page"></div>
+                <div id="page-schedules" class="page"></div>
+                <div id="page-ecommerce" class="page"></div>
+                <div id="page-register" class="page"></div>
+                <div id="page-service-provider-register" class="page"></div>
+                <div id="page-secure-trade" class="page"></div>
+
+                <!-- Static/Account Pages -->
+                <div id="page-dashboard" class="page"></div>
+                <div id="page-address-book" class="page"></div>
+                <div id="page-settings" class="page"></div>
+                <div id="page-api-hub" class="page"></div>
+                <div id="page-help" class="page"></div>
+                <div id="page-privacy" class="page"></div>
+                <div id="page-terms" class="page"></div>
+                <div id="page-payment" class="page">
+                    <div class="payment-page-layout">
+                        <div class="payment-main-content">
+                            <h2 class="payment-page-title">Complete Your Payment</h2>
+                            <form id="payment-form">
+                                <div class="card">
+                                    <h3>Payment Details</h3>
+                                    <div class="input-wrapper" style="margin-bottom: 1.5rem;">
+                                        <label for="cardholder-name">Cardholder Name</label>
+                                        <input type="text" id="cardholder-name" placeholder="Name on card" required>
+                                    </div>
+                                    <div id="stripe-card-element"></div>
+                                    <div id="card-errors" role="alert"
+                                        style="color: var(--error-color); margin-top: 1rem; font-size: 0.9rem;"></div>
+                                </div>
+                                <button type="submit" id="payment-submit-btn" class="main-submit-btn"
+                                    style="margin-top: 2rem;">
+                                    <span class="loading-spinner-small" style="display: none;"></span>
+                                    <span>Pay Now</span>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="payment-sidebar">
+                            <div class="payment-summary-card card">
+                                <h4>Order Summary</h4>
+                                <div id="payment-summary-items"></div>
+                                <div class="review-item"
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 1.1rem; font-weight: 600;">
+                                    <span>Total</span>
+                                    <strong id="payment-summary-total">$0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="page-confirmation" class="page"></div>
+                <div id="page-results" class="page"></div>
+            </main>
+        </div>
+        <footer>
+            <div class="footer-contact">
+                <a href="mailto:vg@vcnresources.com"><i class="fa-solid fa-envelope"></i> vg@vcnresources.com</a>
+                <a href="tel:+12513166847"><i class="fa-solid fa-phone"></i> +1 (251) 316-6847</a>
+            </div>
+            <div class="footer-copyright" data-i18n="footer.copyright">
+                © 2024 Vcanship by Vcan Resources. All Rights Reserved.
+            </div>
+        </footer>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chat-window" class="hidden">
+        <div id="chat-header">
+            <h4 data-i18n="chatbot.title">Vcanship Assistant</h4>
+            <button id="close-chat-btn" class="close-btn" aria-label="Close chat window"
+                data-i18n-aria="aria.close_chat">&times;</button>
+        </div>
+        <div id="chat-history"></div>
+        <div id="chat-suggestions">
+            <p data-i18n="chatbot.faq_title">Frequently Asked Questions:</p>
+            <button class="suggestion-btn" data-i18n="chatbot.suggestions.services">What services do you offer?</button>
+            <button class="suggestion-btn" data-i18n="chatbot.suggestions.tracking">How do I track a package?</button>
+            <button class="suggestion-btn" data-i18n="chatbot.suggestions.fcl_lcl">What is the difference between FCL
+                and LCL?</button>
+            <button class="suggestion-btn" data-i18n="chatbot.suggestions.cheap_shipping">Can you help me find a cheap
+                shipping option?</button>
+        </div>
+        <form id="chat-form">
+            <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off"
+                data-i18n="chatbot.input_placeholder">
+            <button type="submit" aria-label="Send message" data-i18n-aria="aria.send_message"><i
+                    class="fa-solid fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <!-- NEW MULTI-ACTION FAB -->
+    <div class="multi-fab-container draggable-fab" id="multi-fab-container">
+        <div class="fab-actions">
+            <button class="fab-action-btn" id="fab-menu-btn" aria-label="Open Menu" data-i18n-aria="aria.open_menu">
+                <span data-i18n="fab.menu">Menu</span>
+                <div class="fab-icon-wrapper"><i class="fa-solid fa-bars"></i></div>
+            </button>
+            <button class="fab-action-btn" id="fab-chat-btn" aria-label="Open Chat" data-i18n-aria="aria.open_chat">
+                <span data-i18n="fab.chat">Chat</span>
+                <div class="fab-icon-wrapper"><i class="fa-solid fa-comments"></i></div>
+            </button>
+        </div>
+        <button id="main-fab-toggle" aria-label="Toggle actions menu" data-i18n-aria="aria.toggle_actions">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay" class="hidden">
+        <div id="mobile-menu-content">
+            <!-- Content is injected by index.tsx -->
+        </div>
+    </div>
+
+
+    <!-- Modals -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content auth-modal-content">
+            <div class="auth-modal-layout">
+                <div class="auth-modal-promo">
+                    <a href="#" class="logo static-link" data-page="landing"><strong>Vcan</strong><span>Ship</span></a>
+                    <h3 data-i18n="auth.promo_title">Unlock a World of Logistics</h3>
+                    <p data-i18n="auth.promo_desc">Join Vcanship to access exclusive rates, real-time tracking, and a
+                        seamless shipping experience from start to finish.</p>
+                    <div class="promo-graphic"></div>
+                </div>
+                <div class="auth-modal-form">
+                    <button id="close-auth-modal-btn" class="close-btn" aria-label="Close authentication modal"
+                        data-i18n-aria="aria.close_auth_modal">&times;</button>
+                    <div id="auth-container">
+
+                        <!-- Step 1: Email Entry -->
+                        <div id="email-entry-view" class="auth-view active">
+                            <h3 data-i18n="auth.title_signin_signup">Sign In or Create Account</h3>
+                            <p class="modal-desc" data-i18n="auth.desc_email">Enter your email to get started.</p>
+                            <form id="email-form">
+                                <div class="input-wrapper with-icon">
+                                    <i class="fa-regular fa-envelope input-icon"></i>
+                                    <input type="email" id="auth-email" placeholder="Email Address" required
+                                        data-i18n="auth.placeholder_email">
+                                </div>
+                                <button type="submit" class="main-submit-btn" style="width: 100%;"
+                                    data-i18n="auth.continue">Continue</button>
+                            </form>
+                            <div class="social-login-divider"><span data-i18n="auth.or">OR</span></div>
+                            <div class="social-login-buttons">
+                                <button class="social-btn google-login-btn">
+                                    <svg viewBox="0 0 48 48" width="24" height="24">
+                                        <path fill="#FFC107"
+                                            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
+                                        </path>
+                                        <path fill="#FF3D00"
+                                            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
+                                        </path>
+                                        <path fill="#4CAF50"
+                                            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.528-3.108-11.267-7.481l-6.571,4.819C9.656,40.337,16.318,44,24,44z">
+                                        </path>
+                                        <path fill="#1976D2"
+                                            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.99,36.596,44,30.836,44,24C44,22.659,43.862,21.35,43.611,20.083z">
+                                        </path>
+                                    </svg>
+                                    <span data-i18n="auth.continue_google">Continue with Google</span>
+                                </button>
+                                <button class="social-btn apple-login-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2.03c-2.45 0-4.38.34-6.12.88-.47.16-.95.42-1.38.74-.75.56-1.44 1.3-2.02 2.14-.54.76-.94 1.6-1.18 2.44-.24.88-.36 1.76-.36 2.62 0 3.28 1.18 6.12 3.54 8.52 1.52 1.56 3.2 2.42 5.02 2.52.5.04 1.04-.04 1.62-.18.56-.14 1.14-.38 1.7-.7.54-.3.98-.62 1.32-.92s.6-.58.76-.82c.04-.08.08-.18.12-.28.02-.06.03-.1.03-.12 0-.02-.02-.04-.04-.06-.02-.02-.05-.04-.08-.04s-.06 0-.08.02c-.02.02-.04.04-.04.06 0 .04-.02.1-.04.16-.02.06-.05.13-.08.2s-.08.14-.12.2c-.22.28-.5.56-.84.8-.38.28-.82.52-1.32.72-.6.22-1.24.4-1.92.52-.64.12-1.3.16-1.96.12-2.12-.12-4.04-1.1-5.74-2.8-2.52-2.52-3.76-5.54-3.76-8.98 0-.96.14-1.94.42-2.88.26-.92.68-1.82 1.24-2.68.6-.9 1.34-1.68 2.22-2.3.48-.34.98-.6 1.48-.78 1.8-.64 3.82-.98 6.06-.98 1.16 0 2.28.1 3.32.3.56.1.98.24 1.24.4.24.16.42.33.56.5.12.16.2.32.24.48.04.14.06.28.06.4s-.02.26-.06.38c-.04.12-.1.23-.18.33s-.18.18-.28.25c-.12.08-.24.12-.38.12s-.26-.04-.38-.12c-.1-.07-.18-.15-.25-.25-.06-.1-.1-.2-.12-.3s-.04-.2-.04-.3c0-.04.02-.1.04-.16.02-.06.05-.12.08-.18.02-.04.06-.1.1-.14.04-.04.1-.1.15-.15.2-.2.5-.4.88-.56.4-.16.86-.3 1.38-.4 1.2-.22 2.48-.34 3.84-.34 1.08 0 2.12.13 3.12.38.2.05.4.1.6.18.2.06.38.15.54.25.16.1.3.22.44.35.14.13.26.28.38.42.12.15.22.3.3.48.08.18.15.36.2.55.05.2.08.4.1.6.02.2.03.4.03.6 0 .4-.04.8-.13 1.18-.08.4-.2.78-.36 1.15-.16.35-.35.7-.58 1.02-.22.3-.48.6-.78.85-.3.26-.62.5-.98.7-.35.2-.72.38-1.1.52-.38.14-.78.25-1.18.34-.4.08-.8.14-1.2.18-.4.04-.8.06-1.2.06-2.12 0-3.98-.58-5.58-1.72-1.52-1.06-2.66-2.48-3.4-4.22-.1-.2-.16-.4-.2-.6 0-.04.02-.08.04-.1s.05-.03.08-.03c.04 0 .06.02.08.04.02.02.03.05.03.08 0 .14.05.3.13.48.72 1.68 1.8 3.02 3.24 4.02 1.68 1.16 3.52 1.74 5.52 1.74.4 0 .8-.02 1.2-.06.4-.04.8-.1 1.2-.18.4-.08.78-.18 1.15-.32.38-.14.72-.3 1.05-.5.32-.2.62-.4.9-.62.28-.24.52-.5.72-.78.2-.28.38-.6.5-.92.15-.35.26-.72.34-1.1.08-.38.12-.78.12-1.18 0-.2-.02-.4-.04-.6s-.05-.4-.1-.6c-.04-.18-.1-.36-.18-.54s-.16-.35-.26-.5c-.1-.16-.22-.3-.35-.45s-.26-.28-.4-.4c-.15-.13-.3-.24-.48-.34s-.36-.18-.55-.25c-.2-.08-.4-.14-.6-.2-1-.24-2.04-.36-3.12-.36z" />
+                                    </svg>
+                                    <span data-i18n="auth.continue_apple">Continue with Apple</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Password Entry (for existing users) -->
+                        <div id="password-entry-view" class="auth-view">
+                            <button class="back-to-auth-start-btn" aria-label="Back" data-i18n-aria="aria.back"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <h3 data-i18n="auth.welcome_back">Welcome Back!</h3>
+                            <p class="modal-desc" data-i18n-html="auth.desc_password_html">Enter your password for
+                                <strong id="password-entry-email"></strong>.</p>
+                            <form id="password-form" novalidate>
+                                <div class="input-wrapper with-icon">
+                                    <i class="fa-solid fa-lock input-icon"></i>
+                                    <input type="password" id="auth-password" placeholder="Password" required
+                                        autocomplete="current-password" data-i18n="auth.placeholder_password">
+                                    <button type="button" class="password-toggle" aria-label="Show password"
+                                        data-i18n-aria="aria.show_password"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                                <div class="form-sub-actions"><a href="#" id="forgot-password-link"
+                                        data-i18n="auth.forgot_password">Forgot Password?</a></div>
+                                <button type="submit" class="main-submit-btn" style="width: 100%;"
+                                    data-i18n="auth.signin">Sign In</button>
+                            </form>
+                            <div class="auth-toggle" style="margin-top: 2rem;">
+                                <button id="send-magic-link-instead-btn" class="link-btn"
+                                    data-i18n="auth.magic_link_instead">Email me a magic link instead</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Signup View (for new users) -->
+                        <div id="signup-view" class="auth-view">
+                            <button class="back-to-auth-start-btn" aria-label="Back" data-i18n-aria="aria.back"><i
+                                    class="fa-solid fa-arrow-left"></i></button>
+                            <h3 data-i18n="auth.title_create_account">Create Your Account</h3>
+                            <p class="modal-desc" data-i18n-html="auth.desc_create_password_html">Create a password for
+                                <strong id="signup-view-email"></strong>.</p>
+                            <form id="signup-form" novalidate>
+                                <div class="input-wrapper with-icon">
+                                    <i class="fa-regular fa-user input-icon"></i>
+                                    <input type="text" id="signup-name" placeholder="Full Name" required
+                                        data-i18n="auth.placeholder_name">
+                                </div>
+                                <div class="input-wrapper with-icon">
+                                    <i class="fa-solid fa-lock input-icon"></i>
+                                    <input type="password" id="signup-password" placeholder="Create a password" required
+                                        autocomplete="new-password" data-i18n="auth.placeholder_create_password">
+                                    <button type="button" class="password-toggle" aria-label="Show password"
+                                        data-i18n-aria="aria.show_password"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                                <button type="submit" class="main-submit-btn" style="width: 100%;"
+                                    data-i18n="auth.create_account">Create Account</button>
+                            </form>
+                            <div class="auth-toggle" style="margin-top: 2rem;">
+                                <button id="magic-link-signup-btn" class="link-btn"
+                                    data-i18n="auth.magic_link_signup">Sign up with a magic link instead</button>
+                            </div>
+                        </div>
+
+                        <!-- Magic Link Sent View -->
+                        <div id="magic-link-sent-view" class="auth-view" style="text-align: center;">
+                            <div class="confirmation-icon-wrapper" style="margin: 0 auto 1rem;"><svg
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                                </svg></div>
+                            <h3 data-i18n="auth.check_email">Check Your Email</h3>
+                            <p class="modal-desc" data-i18n-html="auth.desc_magic_link_sent_html">We've sent a secure
+                                sign-in link to <strong id="magic-link-email-display"></strong>. Click the link to log
+                                in.</p>
+                            <div class="form-actions"
+                                style="margin-top: 2rem; justify-content: center; flex-direction: column;">
+                                <button id="resend-magic-link-btn" class="link-btn"
+                                    data-i18n="auth.resend_magic_link">Didn't receive it? Resend link</button>
+                                <button class="back-to-auth-start-btn link-btn" data-i18n="auth.back_to_start">Back to
+                                    Start</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW DROPOFF LOCATIONS MODAL -->
+    <div id="dropoff-locations-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-dropoff-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.dropoff.title">Nearby Drop-off Locations</h3>
+            <p class="modal-desc" id="dropoff-modal-desc"></p>
+            <div id="dropoff-locations-list-container">
+                <div class="loading-spinner-container" style="display: none; flex-direction: column; gap: 1rem;">
+                    <div class="loading-spinner"></div>
+                    <p data-i18n="modals.dropoff.loading">Finding locations...</p>
+                </div>
+                <ul id="dropoff-locations-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="tracking-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-tracking-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.track.title">Track Your Shipment</h3>
+            <form id="tracking-form" style="margin-top: 1rem;">
+                <div class="input-wrapper">
+                    <label for="tracking-id-input" data-i18n="modals.track.label">Enter Tracking ID</label>
+                    <input type="text" id="tracking-id-input" placeholder="e.g., PAR-123456" required
+                        data-i18n="modals.track.placeholder">
+                </div>
+                <div class="form-actions" style="justify-content: flex-end;">
+                    <button type="submit" class="main-submit-btn" data-i18n="header.track">Track</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="inspector-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-inspector-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="footer.inspectorPortal">Inspector Portal</h3>
+            <p data-i18n="modals.inspector.desc">This area is for authorized personnel only.</p>
+        </div>
+    </div>
+
+    <div id="shipping-agreement-modal" class="modal-overlay">
+        <div class="modal-content large">
+            <button id="close-shipping-agreement-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.agreement.title">Shipping Agreement</h3>
+            <div class="agreement-text">
+                <p data-i18n="modals.agreement.text">This is a legally binding agreement... (Full text would go here)
+                </p>
+            </div>
+            <div class="checkbox-wrapper" style="margin-top: 1rem;">
+                <input type="checkbox" id="shipping-agreement-checkbox">
+                <label for="shipping-agreement-checkbox" data-i18n="modals.agreement.checkbox_label">I have read and
+                    agree to the terms and conditions.</label>
+            </div>
+            <div class="modal-footer">
+                <button id="download-shipping-agreement-pdf-btn" class="secondary-btn"
+                    data-i18n="modals.agreement.download_pdf">Download PDF</button>
+                <button id="shipping-agreement-proceed-btn" class="main-submit-btn" disabled
+                    data-i18n="modals.agreement.proceed">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tracking-device-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-tracking-device-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.tracker.title">Vcanship SmartTracker™</h3>
+            <p data-i18n="modals.tracker.desc">Our GPS tracking device offers real-time location updates for your peace
+                of mind. Simply place it in your baggage before shipping. (This is a simulated feature for
+                demonstration).</p>
+        </div>
+    </div>
+
+    <div id="usage-limit-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <button id="close-limit-modal-btn" class="close-btn">&times;</button>
+            <h3 id="limit-modal-title"></h3>
+            <p id="limit-modal-message" style="margin-top: 1rem;"></p>
+            <div class="form-actions" style="margin-top: 1.5rem; justify-content: center;">
+                <button id="limit-modal-action-btn" class="main-submit-btn"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="prelaunch-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <button id="close-prelaunch-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.prelaunch.title">Coming Soon!</h3>
+            <p style="margin-top: 1rem;" data-i18n="modals.prelaunch.desc">This feature is currently in development and
+                will be launching soon. Stay tuned!</p>
+        </div>
+    </div>
+
+    <div id="price-breakdown-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-breakdown-modal-btn" class="close-btn">&times;</button>
+            <h3 data-i18n="modals.breakdown.title">Price Breakdown</h3>
+            <p id="breakdown-modal-subtitle" class="subtitle"
+                style="text-align: left; max-width: none; margin: 0 0 1.5rem 0;"></p>
+            <div id="breakdown-details-container" class="payment-overview"></div>
+        </div>
+    </div>
+
+    <div id="locale-modal" class="modal-overlay">
+        <div class="modal-content extra-large">
+            <button id="close-locale-modal-btn" class="close-btn">&times;</button>
+            <h3 id="locale-modal-title" data-i18n="modals.locale.title">Select Region & Language</h3>
+            <p class="modal-desc" data-i18n="modals.locale.description">Your selection will update currency and language
+                options across the site.</p>
+            <div class="locale-modal-layout">
+                <div class="locale-country-list-panel">
+                    <input type="search" id="locale-search-input" placeholder="Search by country or code..."
+                        data-i18n="modals.locale.search_placeholder">
+                    <ul id="locale-modal-list"></ul>
+                </div>
+                <div class="locale-selection-preview-panel" id="locale-selection-preview">
+                    <!-- Preview will be rendered here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-locale-modal-btn" class="secondary-btn"
+                    data-i18n="modals.locale.cancel">Cancel</button>
+                <button id="confirm-locale-btn" class="main-submit-btn" disabled
+                    data-i18n="modals.locale.confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p id="loading-progress-text" data-i18n="loading.default">Please wait...</p>
+    </div>
+
+    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
