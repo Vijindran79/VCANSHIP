@@ -34,10 +34,10 @@ interface SpeechRecognition extends EventTarget {
     onresult: (event: SpeechRecognitionEvent) => void;
 }
 declare var SpeechRecognition: {
-    new (): SpeechRecognition;
+    new(): SpeechRecognition;
 };
 declare var webkitSpeechRecognition: {
-    new (): SpeechRecognition;
+    new(): SpeechRecognition;
 };
 
 // ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
@@ -141,7 +141,7 @@ export function renderLandingPage() {
     // --- SEO Rotator Logic ---
     const businessSeo = t('landing.seo.business').split('|');
     const emotionalSeo = t('landing.seo.emotional').split('|');
-    
+
     const rotator1 = document.getElementById('seo-rotator-text-1');
     const rotator2 = document.getElementById('seo-rotator-text-2');
 
@@ -166,7 +166,7 @@ export function renderLandingPage() {
         setTimeout(() => {
             rotator2.textContent = emotionalSeo[idx2];
             rotator2.classList.add('visible');
-             setInterval(() => {
+            setInterval(() => {
                 rotator2.classList.remove('visible');
                 setTimeout(() => {
                     idx2 = (idx2 + 1) % emotionalSeo.length;
@@ -257,7 +257,7 @@ export function renderHelpPage() {
             </div>
         </div>
     `;
-    
+
     const searchInput = page.querySelector('#help-search-input') as HTMLInputElement;
     const categoryContainer = page.querySelector('.faq-categories') as HTMLElement;
     const faqList = page.querySelector('#faq-list') as HTMLElement;
@@ -275,9 +275,9 @@ export function renderHelpPage() {
     function displayFaqs() {
         const filteredFaqs = faqs.filter((faq: any) => {
             const matchesCategory = currentCategory === t('help_page.categories.all') || faq.category === currentCategory;
-            const matchesSearch = !currentSearchTerm || 
-                                  faq.question.toLowerCase().includes(currentSearchTerm) || 
-                                  faq.answer.toLowerCase().includes(currentSearchTerm);
+            const matchesSearch = !currentSearchTerm ||
+                faq.question.toLowerCase().includes(currentSearchTerm) ||
+                faq.answer.toLowerCase().includes(currentSearchTerm);
             return matchesCategory && matchesSearch;
         });
 
@@ -296,7 +296,7 @@ export function renderHelpPage() {
             notFoundMessage.classList.add('hidden');
         }
     }
-    
+
     // Initial display
     categoryContainer.querySelector(`[data-category="${t('help_page.categories.all')}"]`)?.classList.add('active');
     displayFaqs();
@@ -341,14 +341,14 @@ export function renderHelpPage() {
                 const originalText = btn.querySelector('span')?.textContent || t('help_page.copy');
 
                 btn.classList.add('copied');
-                if(btn.querySelector('i')) btn.querySelector('i')!.className = 'fa-solid fa-check';
-                if(btn.querySelector('span')) btn.querySelector('span')!.textContent = t('help_page.copied');
+                if (btn.querySelector('i')) btn.querySelector('i')!.className = 'fa-solid fa-check';
+                if (btn.querySelector('span')) btn.querySelector('span')!.textContent = t('help_page.copied');
                 btn.disabled = true;
 
                 setTimeout(() => {
                     btn.classList.remove('copied');
-                    if(btn.querySelector('i')) btn.querySelector('i')!.className = originalIcon;
-                    if(btn.querySelector('span')) btn.querySelector('span')!.textContent = originalText;
+                    if (btn.querySelector('i')) btn.querySelector('i')!.className = originalIcon;
+                    if (btn.querySelector('span')) btn.querySelector('span')!.textContent = originalText;
                     btn.disabled = false;
                 }, 2000);
             }).catch(err => {
@@ -384,7 +384,7 @@ export function renderHelpPage() {
             voiceSearchBtn.classList.add('listening');
             searchInput.placeholder = 'Listening...';
         };
-        
+
         recognition.onend = () => {
             voiceSearchBtn.classList.remove('listening');
             searchInput.placeholder = originalPlaceholder;
@@ -403,7 +403,7 @@ export function renderHelpPage() {
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             const transcript = event.results[0][0].transcript;
             searchInput.value = transcript;
-            
+
             // Trigger the input event to make the existing search logic run
             const inputEvent = new Event('input', { bubbles: true, cancelable: true });
             searchInput.dispatchEvent(inputEvent);
@@ -420,7 +420,7 @@ export function renderApiHubPage() {
     if (!page) return;
 
     const mockApiKey = `vcan_live_${'•'.repeat(20)}abcdef123`;
-    
+
     const jsSnippet = `const apiKey = 'YOUR_API_KEY';
 const quoteData = {
   origin: { postcode: 'SW1A 0AA', country: 'GB' },
@@ -524,7 +524,7 @@ else:
         scrollBeyondLastLine: false,
     });
     editors.set('js-editor', jsEditor);
-    
+
     const pythonEditor = monaco.editor.create(document.getElementById('python-editor-container')!, {
         value: pythonSnippet,
         language: 'python',
@@ -546,10 +546,10 @@ else:
             let textToCopy = '';
 
             if (targetSelector) {
-                 const sourceElement = page.querySelector(targetSelector) as HTMLElement;
-                 if (sourceElement) {
+                const sourceElement = page.querySelector(targetSelector) as HTMLElement;
+                if (sourceElement) {
                     textToCopy = sourceElement.innerText;
-                 }
+                }
             } else if (editorId) {
                 const editor = editors.get(editorId);
                 if (editor) {
@@ -564,14 +564,14 @@ else:
                 const originalText = btn.querySelector('span')?.textContent || 'Copy';
 
                 btn.classList.add('copied');
-                if(btn.querySelector('i')) btn.querySelector('i')!.className = 'fa-solid fa-check';
-                if(btn.querySelector('span')) btn.querySelector('span')!.textContent = 'Copied!';
+                if (btn.querySelector('i')) btn.querySelector('i')!.className = 'fa-solid fa-check';
+                if (btn.querySelector('span')) btn.querySelector('span')!.textContent = 'Copied!';
                 btn.disabled = true;
 
                 setTimeout(() => {
                     btn.classList.remove('copied');
-                    if(btn.querySelector('i')) btn.querySelector('i')!.className = originalIcon;
-                    if(btn.querySelector('span')) btn.querySelector('span')!.textContent = originalText;
+                    if (btn.querySelector('i')) btn.querySelector('i')!.className = originalIcon;
+                    if (btn.querySelector('span')) btn.querySelector('span')!.textContent = originalText;
                     btn.disabled = false;
                 }, 2000);
             }).catch(err => {
@@ -666,14 +666,28 @@ export function initializeStaticPages() {
         // Create ticker items - duplicate for seamless infinite scroll
         let tickerHtml = '';
         const brandsForTicker = [...allBrands, ...allBrands]; // Duplicate for seamless loop
-        
+
+        // Add VcanShip logo at strategic intervals (every 10 items)
+        let itemCount = 0;
         brandsForTicker.forEach((brand) => {
+            // Insert VcanShip branding every 10 items for prominent visibility
+            if (itemCount > 0 && itemCount % 10 === 0) {
+                tickerHtml += `<div class="ticker-item ticker-item-vcanship" data-type="vcanship">
+                    <svg class="ticker-logo ticker-vcanship-logo" viewBox="0 0 200 50" width="120" height="30">
+                        <text x="10" y="40" style="fill: white; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 40px;">Vcan</text>
+                        <text x="105" y="40" style="fill: rgba(255, 255, 255, 0.9); font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 40px;">Ship</text>
+                    </svg>
+                    <span class="ticker-brand-name" style="font-weight: 600; color: rgba(255, 255, 255, 1);">Your Global Shipping Partner</span>
+                </div>`;
+            }
+
             // Show brand name prominently - logos may be blocked by ad blockers
             // Use brand name as primary display, logo is optional
             const brandIcon = brand.type === 'carrier' ? '🚢' : '🛒';
             tickerHtml += `<div class="ticker-item" data-type="${brand.type}"><span class="ticker-icon-fallback">${brandIcon}</span><img src="${getTickerLogoUrl(brand)}" alt="${brand.name}" class="ticker-logo" loading="lazy" onerror="this.style.display='none'; this.previousElementSibling.style.display='inline-block';" onload="this.style.display='block'; this.previousElementSibling.style.display='none';"><span class="ticker-brand-name">${brand.name}</span></div>`;
+            itemCount++;
         });
-        
+
         // Wrap in container for proper animation - single horizontal line
         tickerBanner.innerHTML = `<div class="ticker-wrapper"><div class="ticker-content">${tickerHtml}</div></div>`;
     }

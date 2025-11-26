@@ -6294,3 +6294,24 @@ html[data-theme=\dark\] .mobile-nav-item:hover {
 }
 
 /* === END MOBILE NAVIGATION DRAWER === */
+
+/* VcanShip logo in ticker banner */
+.ticker-item-vcanship {
+    border-left: 3px solid rgba(255, 255, 255, 0.6) !important;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0 2.5rem !important;
+}
+
+.ticker-vcanship-logo {
+    display: block !important;
+    margin-right: 1rem;
+}
+
+.ticker-item-vcanship .ticker-brand-name {
+    font-size: 0.85rem !important;
+    opacity: 0.95;
+}
+
+.ticker-item-vcanship:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
