@@ -9,13 +9,14 @@ import { initializeLocaleSwitcher } from './LocaleSwitcher';
 import { initializeAuth, handleLogout, updateUIForAuthState, handleSignInWithEmailLink } from './auth';
 import { initializeStaticPages, renderApiHubPage } from './static_pages';
 import { initializeDashboard } from './dashboard';
-import { initializeAccountPages }from './account';
+import { initializeAccountPages } from './account';
 import { initializeI18n, updateStaticUIText, t } from './i18n';
 import { initializeSidebar, getAllServicesConfig } from './sidebar';
 import { unmountPromotionBanner } from './promotions';
 import { initializeSettings } from './settings';
 import { makeDraggable } from './utils';
 import { getChatbotResponse } from './api';
+import { initMobileNav, updateMobileNavVisibility } from './mobile-nav';
 
 // --- Global state for chat ---
 let conversationHistory: { role: 'user' | 'model', text: string }[] = [];
@@ -79,15 +80,15 @@ function initializeHeaderScroll() {
             header.classList.remove('header-hidden');
             return;
         }
-        
+
         const scrollTop = window.scrollY;
 
         if (Math.abs(lastScrollTop - scrollTop) <= delta) return;
 
-        if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight){
+        if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
             header.classList.add('header-hidden');
         } else {
-            if(scrollTop + window.innerHeight < document.documentElement.scrollHeight) {
+            if (scrollTop + window.innerHeight < document.documentElement.scrollHeight) {
                 header.classList.remove('header-hidden');
             }
         }
@@ -99,7 +100,7 @@ function initializeHeaderScroll() {
 function populateMobileMenu() {
     const contentContainer = document.getElementById('mobile-menu-content');
     if (!contentContainer) return;
-    
+
     const { isLoggedIn, currentUser } = State;
     const services = getAllServicesConfig();
 
@@ -120,7 +121,7 @@ function populateMobileMenu() {
     const servicesHtml = services.map(s => `
         <button class="mobile-menu-nav-item sidebar-btn-service" data-service="${s.id}"><i class="${s.icon}"></i> ${s.name}</button>
     `).join('');
-    
+
     const staticLinksHtml = `
         <button class="mobile-menu-nav-item static-link" data-page="api-hub"><i class="fa-solid fa-code"></i> ${t('sidebar.apiHub')}</button>
         <button class="mobile-menu-nav-item static-link" data-page="help"><i class="fa-solid fa-question-circle"></i> ${t('sidebar.helpCenter')}</button>
@@ -181,7 +182,7 @@ function initializeMultiFabAndMobileMenu() {
     mainToggle.addEventListener('click', () => {
         fabContainer.classList.toggle('active');
     });
-    
+
     const openMenu = () => {
         populateMobileMenu(); // Re-populate every time to reflect auth state
         overlay.classList.add('active');
@@ -193,7 +194,7 @@ function initializeMultiFabAndMobileMenu() {
         openMenu();
         fabContainer.classList.remove('active'); // Close FAB menu after action
     });
-    
+
     chatBtn.addEventListener('click', () => {
         openChatWindow();
         fabContainer.classList.remove('active'); // Close FAB menu after action
@@ -239,7 +240,7 @@ function initializeChatbot() {
     if (!chatWindow || !closeBtn || !form || !history || !suggestionsContainer) return;
 
     closeBtn.addEventListener('click', closeChatWindow);
-    
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = input.value.trim();
@@ -253,22 +254,22 @@ function initializeChatbot() {
         userMessageEl.className = 'chat-message user-message';
         userMessageEl.textContent = message;
         history.appendChild(userMessageEl);
-        
+
         conversationHistory.push({ role: 'user', text: message });
-        
+
         // Hide suggestions
         suggestionsContainer.style.display = 'none';
-        
+
         // Display thinking indicator
         const thinkingIndicator = document.createElement('div');
         thinkingIndicator.className = 'chat-message bot-message thinking-indicator';
         thinkingIndicator.innerHTML = `<span>${t('chatbot.thinking')}</span><div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
         history.appendChild(thinkingIndicator);
         history.scrollTop = history.scrollHeight;
-        
+
         try {
             const responseText = await getChatbotResponse(message, conversationHistory);
-            
+
             conversationHistory.push({ role: 'model', text: responseText });
 
             const botMessageEl = document.createElement('div');
@@ -303,11 +304,11 @@ async function initializeApp() {
     // Check for magic link sign-in first
     const signedIn = await handleSignInWithEmailLink();
     if (signedIn) {
-      // If sign-in was handled, wait a moment for auth state to propagate before initializing everything else
-      // This avoids race conditions with UI updates.
-      setTimeout(() => initializeCoreApp(), 500);
+        // If sign-in was handled, wait a moment for auth state to propagate before initializing everything else
+        // This avoids race conditions with UI updates.
+        setTimeout(() => initializeCoreApp(), 500);
     } else {
-      await initializeCoreApp();
+        await initializeCoreApp();
     }
 }
 
@@ -315,7 +316,7 @@ async function initializeCoreApp() {
     initializeTheme();
     initializeHeaderScroll();
     initializeAuth();
-    
+
     // CRITICAL FIX: Await the initialization of i18n to ensure translations are loaded
     // before any other UI component tries to access them. This prevents race conditions.
     await initializeI18n();
@@ -327,6 +328,8 @@ async function initializeCoreApp() {
     initializeStaticPages();
     initializeSidebar();
     initializeMultiFabAndMobileMenu(); // New consolidated FAB and menu handler
+    initMobileNav(); // Initialize Deliveroo-style mobile navigation
+    updateMobileNavVisibility(); // Set initial visibility based on screen size
     initializeSettings(); // Keep for potential non-mobile settings functionality
     initializeDashboard();
     initializeAccountPages();
@@ -345,7 +348,7 @@ async function initializeCoreApp() {
             if (page === State.currentPage) return;
             mountService(page);
         } else if (serviceLink?.dataset.service) {
-             e.preventDefault();
+            e.preventDefault();
             const service = serviceLink.dataset.service as Service;
             mountService(service);
         }
