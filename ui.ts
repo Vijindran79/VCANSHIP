@@ -29,7 +29,7 @@ export const updateProgressBar = (service: string, currentStepIndex: number) => 
  */
 function updateSidebarActiveState() {
     const activePage = State.currentPage;
-    
+
     // --- Sidebar ---
     const sidebar = document.getElementById('app-sidebar');
     if (sidebar) {
@@ -41,7 +41,7 @@ function updateSidebarActiveState() {
         // Find the button to activate. A page can be a service or a static page.
         // Try matching on data-service first for service pages.
         let activeButton = sidebar.querySelector(`.sidebar-btn-service[data-service="${activePage}"]`);
-        
+
         if (!activeButton) {
             // If not found, it might be a main static page link.
             activeButton = sidebar.querySelector(`.sidebar-btn.static-link[data-page="${activePage}"]`);
@@ -56,10 +56,10 @@ function updateSidebarActiveState() {
             activeButton.classList.add('active');
         }
     }
-    
+
     // --- Header ---
     const header = document.querySelector('header');
-    if(header) {
+    if (header) {
         header.querySelectorAll('.header-btn.static-link').forEach(btn => {
             btn.classList.remove('active');
         });
@@ -87,51 +87,23 @@ export const switchPage = (newPage: Page) => {
     if (!newPageElement) {
         console.error(`Page switch failed: Element for page '${newPage}' not found.`);
         if (State.currentPage !== 'landing') {
-             switchPage('landing');
+            switchPage('landing');
         }
         return;
     }
 
-    if (pageContainer.querySelector('.page-flip-in, .page-flip-out')) {
-        return;
-    }
-    
-    if (oldPageElement && oldPageElement !== newPageElement) {
-        oldPageElement.style.position = 'absolute';
-        oldPageElement.style.width = '100%';
-        oldPageElement.style.top = '0';
-        oldPageElement.style.left = '0';
-        oldPageElement.style.zIndex = '1';
+    // Simple page switching - just toggle active class
+    // The CSS will handle hiding/showing
+    const allPages = pageContainer.querySelectorAll('.page') as NodeListOf<HTMLElement>;
+    allPages.forEach(page => {
+        page.classList.remove('active');
+    });
 
-        newPageElement.classList.add('active');
-        newPageElement.style.zIndex = '2';
-
-        oldPageElement.classList.add('page-flip-out');
-        newPageElement.classList.add('page-flip-in');
-
-        oldPageElement.addEventListener('animationend', () => {
-            oldPageElement.classList.remove('active', 'page-flip-out');
-            oldPageElement.style.position = '';
-            oldPageElement.style.width = '';
-            oldPageElement.style.top = '';
-            oldPageElement.style.left = '';
-            oldPageElement.style.zIndex = '';
-        }, { once: true });
-        
-        newPageElement.addEventListener('animationend', () => {
-            newPageElement.classList.remove('page-flip-in');
-        }, { once: true });
-
-    } else {
-        if (oldPageElement) {
-            oldPageElement.classList.remove('active');
-        }
-        newPageElement.classList.add('active');
-    }
+    newPageElement.classList.add('active');
 
     setState({ currentPage: newPage });
-    updateSidebarActiveState(); 
-    window.scrollTo(0, 0); 
+    updateSidebarActiveState();
+    window.scrollTo(0, 0);
 };
 
 
@@ -151,7 +123,7 @@ export function showToast(message: string, type: 'success' | 'error' | 'info' | 
         info: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>`,
         warning: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>`,
     };
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.setAttribute('role', 'alert');
@@ -161,7 +133,7 @@ export function showToast(message: string, type: 'success' | 'error' | 'info' | 
         <div class="toast-icon">${icons[type]}</div>
         <div class="toast-message">${message}</div>
     `;
-    
+
     toastContainer.appendChild(toast);
 
     setTimeout(() => toast.classList.add('show'), 10);
@@ -176,12 +148,12 @@ export function showToast(message: string, type: 'success' | 'error' | 'info' | 
  * @param show True to show, false to hide.
  * @param text The text to display on the overlay.
  */
-export const toggleLoading = (show: boolean, text: string = t('loading.default')) => {
+export const toggleLoading = (show: boolean, text?: string) => {
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-progress-text');
     if (!loadingOverlay || !loadingText) return;
 
-    loadingText.textContent = text;
+    loadingText.textContent = text || t('loading.default');
     loadingOverlay.classList.toggle('active', show);
 };
 

@@ -1,563 +1,811 @@
-// airfreight.ts
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { State, setState, resetAirfreightState, AirfreightCargoPiece, Quote, ComplianceDoc, AirfreightDetails } from './state';
-import { switchPage, updateProgressBar, showToast, toggleLoading } from './ui';
-import { getHsCodeSuggestions } from './api';
-import { Type } from '@google/genai';
-import { createQuoteCard } from './components';
-import { blobToBase64 } from './utils';
-import { MARKUP_CONFIG } from './pricing';
+import { t } from './i18n.js';
+import { State, setState } from './state.js';
 
-// --- MODULE STATE ---
-let cargoPieces: AirfreightCargoPiece[] = [];
-let canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, painting = false;
-let currentAirfreightQuotes: Quote[] = [];
-
-function goToAirfreightStep(step: number) {
-    setState({ currentAirfreightStep: step });
-    updateProgressBar('trade-finance', step - 1);
-    document.querySelectorAll('#page-airfreight .service-step').forEach(s => s.classList.remove('active'));
-    document.getElementById(`airfreight-step-${step}`)?.classList.add('active');
-
-    if (step === 4) {
-        initializeSignaturePad();
-    }
+// --- UTILITY FUNCTIONS ---
+function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    // In a real implementation, this would show a toast notification
 }
 
-function renderAirfreightPage() {
+// --- TYPES ---
+interface AirfreightCargoPiece {
+    id: number;
+    pieces: number;
+    length: number;
+    width: number;
+    height: number;
+    weight: number;
+}
+
+interface Quote {
+    id: string;
+    carrierName: string;
+    totalCost: number;
+    estimatedTransitTime: string;
+    selected?: boolean;
+}
+
+// --- UI RENDERING & STEP MANAGEMENT ---
+
+let currentView: 'form' | 'results' | 'payment' | 'confirmation' = 'form';
+let currentStep: number = 1;
+const totalSteps: number = 4;
+
+// Air Freight form data
+interface AirfreightFormData {
+    originAirport: string;
+    destinationAirport: string;
+    cargoDescription: string;
+    hsCode: string;
+    cargoPieces: AirfreightCargoPiece[];
+    specialRequirements: string;
+    serviceType: 'standard' | 'express' | 'economy';
+}
+
+let formData: AirfreightFormData = {
+    originAirport: '',
+    destinationAirport: '',
+    cargoDescription: '',
+    hsCode: '',
+    cargoPieces: [],
+    specialRequirements: '',
+    serviceType: 'standard'
+};
+
+function renderCurrentView() {
     const page = document.getElementById('page-airfreight');
-    if (!page) return;
-
-    page.innerHTML = `
-        <button class="back-btn">Back to Services</button>
-        <div class="service-page-header">
-            <h2>Book Air Freight</h2>
-            <p class="subtitle">Fast and reliable shipping for your time-sensitive cargo.</p>
-        </div>
-        <div class="form-container">
-            <div class="visual-progress-bar" id="progress-bar-trade-finance">
-                <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
-            </div>
-
-            <!-- Step 1: Details -->
-            <div id="airfreight-step-1" class="service-step">
-                <form id="airfreight-details-form">
-                    <h3>Route & Cargo Details</h3>
-                    <div class="form-section two-column">
-                        <div class="input-wrapper"><label for="airfreight-origin">Origin Airport (IATA)</label><input type="text" id="airfreight-origin" required placeholder="e.g., LHR"></div>
-                        <div class="input-wrapper"><label for="airfreight-destination">Destination Airport (IATA)</label><input type="text" id="airfreight-destination" required placeholder="e.g., JFK"></div>
-                    </div>
-                    <div class="form-section">
-                        <div class="input-wrapper"><label for="airfreight-cargo-description">Detailed Cargo Description</label><textarea id="airfreight-cargo-description" required placeholder="e.g., 10 boxes of smartphone batteries"></textarea></div>
-                        <div class="hs-code-suggester-wrapper">
-                             <div class="input-wrapper">
-                                <label for="airfreight-hs-code">HS Code (Harmonized System)</label>
-                                <div class="hs-code-input-group">
-                                    <input type="text" id="airfreight-hs-code" autocomplete="off" placeholder="Type description for suggestions">
-                                    <button type="button" id="airfreight-hs-image-suggester-btn" class="secondary-btn hs-image-suggester-btn">
-                                        <i class="fa-solid fa-camera"></i> Image
-                                    </button>
-                                </div>
-                                <div class="hs-code-suggestions" id="airfreight-hs-code-suggestions"></div>
-                                <input type="file" id="airfreight-hs-image-input" class="hidden" accept="image/*">
-                                <p class="helper-text">Our AI can suggest a code from your description or an image.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions"><button type="button" id="airfreight-to-dims-btn" class="main-submit-btn">Next: Dimensions</button></div>
-                </form>
-            </div>
-
-            <!-- Step 2: Dimensions -->
-            <div id="airfreight-step-2" class="service-step">
-                <h3>Dimensions & Weight</h3>
-                <div id="airfreight-cargo-list"></div>
-                <button type="button" id="airfreight-add-piece-btn" class="secondary-btn">Add Piece</button>
-                <div id="airfreight-cargo-summary" class="payment-overview" style="margin-top: 1rem;"></div>
-                <div class="form-actions" style="justify-content: space-between">
-                    <button type="button" id="airfreight-back-to-details-btn" class="secondary-btn">Back</button>
-                    <button type="button" id="airfreight-to-quote-btn" class="main-submit-btn">Get Quote & Compliance</button>
-                </div>
-            </div>
-
-            <!-- Step 3: Quote & Compliance -->
-            <div id="airfreight-step-3" class="service-step">
-                <h3>Quote & Compliance</h3>
-                <div class="results-layout-grid">
-                    <main class="results-main-content">
-                        <div id="airfreight-results-controls" class="results-controls"></div>
-                        <div id="airfreight-quotes-container"></div>
-                    </main>
-                    <aside id="airfreight-sidebar-container" class="results-sidebar"></aside>
-                </div>
-                <div class="form-actions" style="justify-content: space-between;">
-                    <button type="button" id="airfreight-back-to-dims-btn" class="secondary-btn">Back</button>
-                    <button type="button" id="airfreight-to-agreement-btn" class="main-submit-btn" disabled>Proceed with Selected Quote</button>
-                </div>
-            </div>
-            
-            <!-- Step 4: Agreement -->
-            <div id="airfreight-step-4" class="service-step">
-                 <h3>Agreement & Finalization</h3>
-                 <div class="two-column">
-                    <div>
-                        <h4>Booking Summary</h4>
-                        <div id="airfreight-agreement-summary" class="payment-overview"></div>
-                        <div class="checkbox-wrapper" style="margin-top: 1.5rem;"><input type="checkbox" id="airfreight-compliance-ack"><label for="airfreight-compliance-ack">I acknowledge my responsibility for providing the required compliance documents.</label></div>
-                    </div>
-                    <div>
-                        <h4>Digital Signature</h4>
-                        <div class="input-wrapper"><label for="airfreight-signer-name">Sign by Typing Your Full Name</label><input type="text" id="airfreight-signer-name"></div>
-                        <label>Sign in the box below</label>
-                        <canvas id="airfreight-signature-pad" width="400" height="150" style="border: 2px solid var(--border-color); border-radius: 8px; cursor: crosshair;"></canvas>
-                    </div>
-                 </div>
-                 <div class="form-actions" style="justify-content: space-between;">
-                    <button type="button" id="airfreight-back-to-compliance-btn" class="secondary-btn">Back</button>
-                    <button type="button" id="airfreight-confirm-booking-btn" class="main-submit-btn" disabled>Confirm Booking Request</button>
-                </div>
-            </div>
-
-            <!-- Step 5: Confirmation -->
-            <div id="airfreight-step-5" class="service-step">
-                <div class="confirmation-container">
-                    <h3>Booking Request Confirmed!</h3>
-                    <p>Your Air Freight booking is confirmed. Our operations team will be in touch to coordinate the next steps.</p>
-                    <div class="confirmation-tracking"><h4>Booking ID</h4><div class="tracking-id-display" id="airfreight-booking-id"></div></div>
-                    <div class="confirmation-actions">
-                         <button id="airfreight-download-pdf-btn" class="secondary-btn">Download Summary (PDF)</button>
-                         <button id="airfreight-new-shipment-btn" class="main-submit-btn">New Shipment</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-
-function renderCargoPieces() {
-    const list = document.getElementById('airfreight-cargo-list');
-    if (!list) return;
-    list.innerHTML = cargoPieces.map((item, index) => `
-        <div class="airfreight-cargo-item card" data-index="${index}">
-             <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 1rem; align-items: flex-end;">
-                <div class="input-wrapper" style="margin-bottom: 0;"><label>Pieces</label><input type="number" class="airfreight-cargo-pieces" value="${item.pieces}" min="1" required></div>
-                <div class="input-wrapper" style="margin-bottom: 0;"><label>Length(cm)</label><input type="number" class="airfreight-cargo-length" value="${item.length}" min="1" required></div>
-                <div class="input-wrapper" style="margin-bottom: 0;"><label>Width(cm)</label><input type="number" class="airfreight-cargo-width" value="${item.width}" min="1" required></div>
-                <div class="input-wrapper" style="margin-bottom: 0;"><label>Height(cm)</label><input type="number" class="airfreight-cargo-height" value="${item.height}" min="1" required></div>
-                <div class="input-wrapper" style="margin-bottom: 0;"><label>Weight(kg)</label><input type="number" class="airfreight-cargo-weight" value="${item.weight}" min="1" required></div>
-                <button type="button" class="secondary-btn airfreight-remove-piece-btn" style="margin-bottom: 0.5rem;">Remove</button>
-            </div>
-        </div>
-    `).join('');
-    updateCargoSummary();
-}
-
-function addCargoPiece() {
-    cargoPieces.push({ id: Date.now(), pieces: 1, length: 50, width: 50, height: 50, weight: 20 });
-    renderCargoPieces();
-}
-
-function updateAndRecalculateCargo(): number {
-    const newItems: AirfreightCargoPiece[] = [];
-    document.querySelectorAll('.airfreight-cargo-item').forEach(itemEl => {
-        newItems.push({
-            id: Date.now(),
-            pieces: parseInt((itemEl.querySelector('.airfreight-cargo-pieces') as HTMLInputElement).value, 10) || 0,
-            length: parseInt((itemEl.querySelector('.airfreight-cargo-length') as HTMLInputElement).value, 10) || 0,
-            width: parseInt((itemEl.querySelector('.airfreight-cargo-width') as HTMLInputElement).value, 10) || 0,
-            height: parseInt((itemEl.querySelector('.airfreight-cargo-height') as HTMLInputElement).value, 10) || 0,
-            weight: parseInt((itemEl.querySelector('.airfreight-cargo-weight') as HTMLInputElement).value, 10) || 0,
-        });
-    });
-    cargoPieces = newItems;
-    return updateCargoSummary();
-}
-
-function updateCargoSummary(): number {
-    const summaryEl = document.getElementById('airfreight-cargo-summary');
-    if (!summaryEl) return 0;
-
-    let totalVolume = 0;
-    let totalWeight = 0;
-    cargoPieces.forEach(item => {
-        totalVolume += (item.length * item.width * item.height) / 1000000 * item.pieces; // CBM
-        totalWeight += item.weight * item.pieces;
-    });
-
-    const chargeableWeight = Math.max(totalWeight, totalVolume * 167); // IATA standard: 1 CBM = 167 kg
-
-    if (cargoPieces.length > 0) {
-        summaryEl.innerHTML = `
-            <div class="review-item"><span>Total Actual Weight:</span><strong>${totalWeight.toFixed(2)} kg</strong></div>
-            <div class="review-item"><span>Total Volume:</span><strong>${totalVolume.toFixed(3)} m³</strong></div>
-            <div class="review-item total"><span>Chargeable Weight:</span><strong>${chargeableWeight.toFixed(2)} kg</strong></div>
-        `;
-    } else {
-        summaryEl.innerHTML = '';
-    }
-    return chargeableWeight;
-}
-
-async function handleGetQuote() {
-    const chargeableWeight = updateAndRecalculateCargo();
-    if (cargoPieces.length === 0) {
-        showToast("Please add at least one cargo piece.", "error");
+    if (!page) {
+        console.error('page-airfreight element not found');
         return;
     }
 
-    const details: AirfreightDetails = {
-        originAirport: (document.getElementById('airfreight-origin') as HTMLInputElement).value,
-        destAirport: (document.getElementById('airfreight-destination') as HTMLInputElement).value,
-        cargoDescription: (document.getElementById('airfreight-cargo-description') as HTMLTextAreaElement).value,
-        hsCode: (document.getElementById('airfreight-hs-code') as HTMLInputElement).value,
-        cargoPieces: cargoPieces,
-        chargeableWeight: chargeableWeight,
-        serviceLevel: 'standard', 
-        cargoCategory: '', 
-    };
-    setState({ airfreightDetails: details });
-    
-    toggleLoading(true, "Analyzing your shipment...");
-    try {
-        if (!State.api) throw new Error("API not initialized");
-        
-        const prompt = `Act as a logistics pricing expert for Air Freight. Provide a JSON response with realistic quotes from 3 different air carriers (e.g., Lufthansa Cargo, Emirates SkyCargo, Cathay Cargo) and a compliance checklist.
-        - Origin Airport (IATA): ${details.originAirport}
-        - Destination Airport (IATA): ${details.destAirport}
-        - Chargeable Weight: ${details.chargeableWeight.toFixed(2)} kg
-        - Cargo: ${details.cargoDescription}.
-        - HS Code: ${details.hsCode || 'Not Provided'}.
-        - Currency: ${State.currentCurrency.code}.
-        
-        The response must be a JSON object with keys "quotes" and "complianceReport".
-        The "quotes" array should contain objects, each with carrierName, estimatedTransitTime, and totalCost. Apply a ${MARKUP_CONFIG.airfreight.standard * 100}% markup to a realistic base cost per kg to calculate totalCost.
-        The "complianceReport" should have status, summary, and a list of requirements (each with title and description), including a check for dangerous goods if the cargo description mentions batteries, electronics, etc.
-        Your response MUST be a single JSON object matching the provided schema.`;
+    // Clear and prepare page
+    page.innerHTML = '';
+    page.style.opacity = '0';
+    page.style.visibility = 'hidden';
+    page.style.display = 'none';
 
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                quotes: {
-                    type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
-                        carrierName: { type: Type.STRING },
-                        estimatedTransitTime: { type: Type.STRING },
-                        totalCost: { type: Type.NUMBER }
-                    }}
-                },
-                complianceReport: {
-                    type: Type.OBJECT, properties: {
-                        status: { type: Type.STRING }, summary: { type: Type.STRING },
-                        requirements: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
-                            title: { type: Type.STRING }, description: { type: Type.STRING }
-                        }}}
-                    }
+    // Clear other pages
+    const pageContainer = document.getElementById('pages');
+    if (pageContainer) {
+        const allPages = pageContainer.querySelectorAll('.page') as NodeListOf<HTMLElement>;
+        allPages.forEach(otherPage => {
+            if (otherPage.id !== 'page-airfreight') {
+                otherPage.classList.remove('active');
+                otherPage.innerHTML = '';
+                otherPage.style.display = 'none';
+                otherPage.style.visibility = 'hidden';
+                otherPage.style.opacity = '0';
+            }
+        });
+    }
+
+    // Show current page
+    page.style.position = 'static';
+    page.style.display = 'block';
+    page.style.visibility = 'visible';
+
+    setTimeout(() => {
+        switch (currentView) {
+            case 'form':
+                const formHtml = renderFormView();
+                page.innerHTML = formHtml;
+                setupFormEventListeners();
+                break;
+            case 'results':
+                page.innerHTML = renderResultsView();
+                setupResultsEventListeners();
+                break;
+            case 'payment':
+                page.innerHTML = renderPaymentView();
+                setupPaymentEventListeners();
+                break;
+            case 'confirmation':
+                page.innerHTML = renderConfirmationView();
+                setupConfirmationEventListeners();
+                break;
+        }
+        
+        page.style.opacity = '1';
+        page.classList.add('active');
+    }, 50);
+}
+
+function renderFormView(): string {
+    return `
+    <div class="parcel-form-layout">
+        <div class="parcel-form-main">
+            <div class="service-page-header">
+                <button class="back-btn" id="airfreight-back-to-services">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Services
+                </button>
+                <h2><i class="fa-solid fa-plane"></i> Book Air Freight</h2>
+                <p class="subtitle">Fast and reliable shipping for your time-sensitive cargo</p>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="parcel-progress-indicator">
+                ${Array.from({length: totalSteps}, (_, i) => `
+                    <div class="progress-step ${i < currentStep ? 'completed' : i === currentStep - 1 ? 'active' : ''}">
+                        <div class="step-number">${i + 1}</div>
+                        <div class="step-label">${getStepLabel(i + 1)}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <form id="airfreight-details-form" novalidate>
+                ${renderStepContent()}
+
+                <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    ${currentStep > 1 ? `<button type="button" id="airfreight-prev-btn" class="secondary-btn"><i class="fa-solid fa-arrow-left"></i> Previous</button>` : '<div></div>'}
+                    ${currentStep < totalSteps ? `<button type="button" id="airfreight-next-btn" class="main-submit-btn">Next: ${getStepLabel(currentStep + 1)} <i class="fa-solid fa-arrow-right"></i></button>` : `<button type="submit" class="main-submit-btn">Get Air Freight Quotes <i class="fa-solid fa-search"></i></button>`}
+                </div>
+            </form>
+        </div>
+
+        <aside class="parcel-form-sidebar">
+            <!-- Support Card -->
+            <div class="card support-card" style="margin-bottom: 1.5rem;">
+                <h3><i class="fa-solid fa-circle-question"></i> Need Help?</h3>
+                <p class="helper-text">Our air freight specialists are here to assist you with urgent shipments.</p>
+                <div class="support-actions">
+                    <button class="secondary-btn" id="airfreight-help-btn" style="width: 100%; margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-book"></i> Air Freight Guide
+                    </button>
+                    <button class="secondary-btn" id="airfreight-contact-btn" style="width: 100%;">
+                        <i class="fa-solid fa-envelope"></i> Contact Expert
+                    </button>
+                </div>
+            </div>
+
+            <!-- Service Info Card -->
+            <div class="card">
+                <h3><i class="fa-solid fa-info-circle"></i> Service Options</h3>
+                <div class="service-options">
+                    <div class="service-option">
+                        <strong>Express</strong>
+                        <small>1-2 days • Premium rates</small>
+                    </div>
+                    <div class="service-option">
+                        <strong>Standard</strong>
+                        <small>3-5 days • Balanced cost</small>
+                    </div>
+                    <div class="service-option">
+                        <strong>Economy</strong>
+                        <small>5-7 days • Best rates</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+    `;
+}
+
+function getStepLabel(step: number): string {
+    const labels = [
+        'Route & Service',
+        'Cargo Details',
+        'Dimensions',
+        'Review & Submit'
+    ];
+    return labels[step - 1] || '';
+}
+
+function renderStepContent(): string {
+    switch (currentStep) {
+        case 1:
+            return renderRouteServiceStep();
+        case 2:
+            return renderCargoDetailsStep();
+        case 3:
+            return renderDimensionsStep();
+        case 4:
+            return renderReviewStep();
+        default:
+            return '';
+    }
+}
+
+function renderRouteServiceStep(): string {
+    return `
+    <div class="form-section">
+        <h3><i class="fa-solid fa-route"></i> Route Information</h3>
+        <p class="section-description">Enter your origin and destination airports</p>
+        
+        <div class="two-column">
+            <div class="input-wrapper">
+                <label for="airfreight-origin">
+                    Origin Airport <span class="required">*</span>
+                    <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Enter IATA airport code (e.g., LHR for London Heathrow)"></i>
+                </label>
+                <input type="text" id="airfreight-origin" placeholder="e.g., LHR" required value="${formData.originAirport}" maxlength="3" style="text-transform: uppercase;">
+                <small class="field-hint">3-letter IATA airport code</small>
+                <div class="field-error" id="airfreight-origin-error"></div>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="airfreight-destination">
+                    Destination Airport <span class="required">*</span>
+                    <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Enter IATA airport code (e.g., JFK for New York JFK)"></i>
+                </label>
+                <input type="text" id="airfreight-destination" placeholder="e.g., JFK" required value="${formData.destinationAirport}" maxlength="3" style="text-transform: uppercase;">
+                <small class="field-hint">3-letter IATA airport code</small>
+                <div class="field-error" id="airfreight-destination-error"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3><i class="fa-solid fa-clock"></i> Service Type</h3>
+        <p class="section-description">Choose your preferred service level</p>
+        
+        <div class="service-type-selector">
+            <button type="button" class="service-type-btn ${formData.serviceType === 'express' ? 'active' : ''}" data-type="express">
+                <strong>Express</strong>
+                <span>1-2 days delivery • Premium rates</span>
+            </button>
+            <button type="button" class="service-type-btn ${formData.serviceType === 'standard' ? 'active' : ''}" data-type="standard">
+                <strong>Standard</strong>
+                <span>3-5 days delivery • Balanced cost</span>
+            </button>
+            <button type="button" class="service-type-btn ${formData.serviceType === 'economy' ? 'active' : ''}" data-type="economy">
+                <strong>Economy</strong>
+                <span>5-7 days delivery • Best rates</span>
+            </button>
+        </div>
+    </div>
+    `;
+}
+
+function renderCargoDetailsStep(): string {
+    return `
+    <div class="form-section">
+        <h3><i class="fa-solid fa-boxes-stacked"></i> Cargo Information</h3>
+        <p class="section-description">Provide detailed information about your cargo for accurate pricing and customs clearance</p>
+
+        <div class="input-wrapper">
+            <label for="airfreight-cargo-description">
+                Detailed Cargo Description <span class="required">*</span>
+                <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Be specific about your goods for customs and handling"></i>
+            </label>
+            <textarea id="airfreight-cargo-description" required placeholder="e.g., 10 boxes of smartphone batteries, 5 pallets of electronic components">${formData.cargoDescription}</textarea>
+            <small class="field-hint">Include quantity, type, and packaging details</small>
+            <div class="field-error" id="airfreight-cargo-description-error"></div>
+        </div>
+
+        <div class="hs-code-suggester-wrapper">
+            <div class="input-wrapper">
+                <label for="airfreight-hs-code">
+                    HS Code (Harmonized System)
+                    <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Used by customs worldwide for classification and duties"></i>
+                </label>
+                <div class="hs-code-input-group">
+                    <input type="text" id="airfreight-hs-code" autocomplete="off" placeholder="Type description for AI suggestions" value="${formData.hsCode}">
+                    <button type="button" id="airfreight-hs-image-suggester-btn" class="secondary-btn hs-image-suggester-btn">
+                        <i class="fa-solid fa-camera"></i> Image
+                    </button>
+                </div>
+                <div class="hs-code-suggestions" id="airfreight-hs-code-suggestions"></div>
+                <input type="file" id="airfreight-hs-image-input" class="hidden" accept="image/*">
+                <small class="field-hint">Our AI can suggest codes from your description or product images</small>
+            </div>
+        </div>
+
+        <div class="input-wrapper">
+            <label for="airfreight-special-requirements">
+                Special Requirements
+                <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Any special handling, temperature, or documentation needs"></i>
+            </label>
+            <textarea id="airfreight-special-requirements" placeholder="e.g., Temperature controlled, Dangerous goods, Live animals">${formData.specialRequirements}</textarea>
+            <small class="field-hint">Optional - Any special handling or documentation requirements</small>
+        </div>
+    </div>
+    `;
+}
+
+function renderDimensionsStep(): string {
+    return `
+    <div class="form-section">
+        <h3><i class="fa-solid fa-ruler-combined"></i> Cargo Dimensions & Weight</h3>
+        <p class="section-description">Add each cargo piece with its dimensions and weight</p>
+
+        <div id="airfreight-cargo-list">
+            ${formData.cargoPieces.length === 0 ? '<p class="helper-text">No cargo pieces added yet. Click "Add Cargo Piece" to get started.</p>' : ''}
+            ${formData.cargoPieces.map((piece, index) => `
+                <div class="cargo-piece" data-index="${index}">
+                    <div class="cargo-header">
+                        <h4>Cargo Piece ${index + 1}</h4>
+                        <button type="button" class="remove-cargo-btn" data-index="${index}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem;">
+                        <div class="input-wrapper">
+                            <label>Pieces</label>
+                            <input type="number" class="cargo-pieces" value="${piece.pieces}" min="1" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Length (cm)</label>
+                            <input type="number" class="cargo-length" value="${piece.length}" min="1" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Width (cm)</label>
+                            <input type="number" class="cargo-width" value="${piece.width}" min="1" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Height (cm)</label>
+                            <input type="number" class="cargo-height" value="${piece.height}" min="1" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Weight (kg)</label>
+                            <input type="number" class="cargo-weight" value="${piece.weight}" min="0.1" step="0.1" required>
+                        </div>
+                    </div>
+                    <div class="cargo-summary">
+                        <span>Volume: ${((piece.length * piece.width * piece.height) / 1000000 * piece.pieces).toFixed(3)} m³</span>
+                        <span>Volumetric Weight: ${(((piece.length * piece.width * piece.height) / 5000) * piece.pieces).toFixed(2)} kg</span>
+                        <span>Actual Weight: ${(piece.weight * piece.pieces).toFixed(2)} kg</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <button type="button" id="airfreight-add-piece-btn" class="secondary-btn">
+            <i class="fa-solid fa-plus"></i> Add Cargo Piece
+        </button>
+
+        ${formData.cargoPieces.length > 0 ? `
+        <div class="cargo-total-summary">
+            <h4>Total Summary</h4>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="label">Total Volume:</span>
+                    <span class="value">${getTotalVolume().toFixed(3)} m³</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Total Actual Weight:</span>
+                    <span class="value">${getTotalActualWeight().toFixed(2)} kg</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Chargeable Weight:</span>
+                    <span class="value">${getChargeableWeight().toFixed(2)} kg</span>
+                </div>
+            </div>
+            <div class="weight-note">
+                <i class="fa-solid fa-info-circle"></i>
+                <small>Air freight charges are based on whichever is greater: actual weight or volumetric weight (L×W×H÷5000)</small>
+            </div>
+        </div>
+        ` : ''}
+    </div>
+    `;
+}
+
+function renderReviewStep(): string {
+    return `
+    <div class="form-section">
+        <h3><i class="fa-solid fa-clipboard-check"></i> Review Your Air Freight Shipment</h3>
+        <p class="section-description">Please review all information before getting your quote</p>
+
+        <div class="review-section">
+            <h4><i class="fa-solid fa-route"></i> Route & Service</h4>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="label">Origin Airport:</span>
+                    <span class="value">${formData.originAirport}</span>
+                </div>
+                <div class="review-item">
+                    <span class="label">Destination Airport:</span>
+                    <span class="value">${formData.destinationAirport}</span>
+                </div>
+                <div class="review-item">
+                    <span class="label">Service Type:</span>
+                    <span class="value">${formData.serviceType.charAt(0).toUpperCase() + formData.serviceType.slice(1)}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="review-section">
+            <h4><i class="fa-solid fa-boxes-stacked"></i> Cargo Details</h4>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="label">Description:</span>
+                    <span class="value">${formData.cargoDescription}</span>
+                </div>
+                ${formData.hsCode ? `
+                <div class="review-item">
+                    <span class="label">HS Code:</span>
+                    <span class="value">${formData.hsCode}</span>
+                </div>
+                ` : ''}
+                ${formData.specialRequirements ? `
+                <div class="review-item">
+                    <span class="label">Special Requirements:</span>
+                    <span class="value">${formData.specialRequirements}</span>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+
+        <div class="review-section">
+            <h4><i class="fa-solid fa-ruler-combined"></i> Cargo Pieces</h4>
+            ${formData.cargoPieces.length > 0 ? `
+                <div class="cargo-review-list">
+                    ${formData.cargoPieces.map((piece, index) => `
+                        <div class="cargo-review-item">
+                            <strong>Piece ${index + 1}:</strong>
+                            <span>${piece.pieces} pieces, ${piece.length}×${piece.width}×${piece.height}cm, ${piece.weight}kg each</span>
+                            <span class="weight-info">Volumetric: ${(((piece.length * piece.width * piece.height) / 5000) * piece.pieces).toFixed(2)} kg, Actual: ${(piece.weight * piece.pieces).toFixed(2)} kg</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="cargo-totals">
+                    <div class="total-item">
+                        <span class="label">Total Volume:</span>
+                        <span class="value">${getTotalVolume().toFixed(3)} m³</span>
+                    </div>
+                    <div class="total-item">
+                        <span class="label">Chargeable Weight:</span>
+                        <span class="value">${getChargeableWeight().toFixed(2)} kg</span>
+                    </div>
+                </div>
+            ` : '<p class="helper-text">No cargo pieces added</p>'}
+        </div>
+
+        <div class="review-note">
+            <i class="fa-solid fa-info-circle"></i>
+            <p>Air freight rates are calculated based on chargeable weight (greater of actual or volumetric weight). Additional fuel surcharges and handling fees will be included in the final quote.</p>
+        </div>
+    </div>
+    `;
+}
+
+function renderResultsView(): string {
+    return `
+    <div class="service-page-header">
+        <button class="back-btn" id="airfreight-back-to-form">
+            <i class="fa-solid fa-arrow-left"></i> Back to Form
+        </button>
+        <h2><i class="fa-solid fa-plane"></i> Air Freight Quotes</h2>
+        <p class="subtitle">Compare rates from multiple airlines and forwarders</p>
+    </div>
+    <div id="airfreight-quotes-container"></div>
+    `;
+}
+
+function renderPaymentView(): string {
+    return `
+    <div class="service-page-header">
+        <h2><i class="fa-solid fa-credit-card"></i> Payment</h2>
+        <p class="subtitle">Complete your air freight booking</p>
+    </div>
+    <div class="payment-container">
+        <p>Payment processing for air freight bookings...</p>
+    </div>
+    `;
+}
+
+function renderConfirmationView(): string {
+    return `
+    <div class="service-page-header">
+        <h2><i class="fa-solid fa-check-circle"></i> Booking Confirmed</h2>
+        <p class="subtitle">Your air freight shipment has been booked successfully</p>
+    </div>
+    <div class="confirmation-container">
+        <p>Your air freight booking confirmation details...</p>
+    </div>
+    `;
+}
+
+function setupFormEventListeners() {
+    // Back to services
+    const backBtn = document.getElementById('airfreight-back-to-services');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            setState({ currentPage: 'landing' });
+        });
+    }
+
+    // Service type selection
+    const serviceTypeBtns = document.querySelectorAll('.service-type-btn');
+    serviceTypeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const type = target.dataset.type as AirfreightFormData['serviceType'];
+            if (type) {
+                formData.serviceType = type;
+                serviceTypeBtns.forEach(b => b.classList.remove('active'));
+                target.classList.add('active');
+            }
+        });
+    });
+
+    // Navigation buttons
+    const prevBtn = document.getElementById('airfreight-prev-btn');
+    const nextBtn = document.getElementById('airfreight-next-btn');
+    const form = document.getElementById('airfreight-details-form') as HTMLFormElement;
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                renderCurrentView();
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (validateCurrentStep()) {
+                saveCurrentStepData();
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    renderCurrentView();
                 }
             }
-        };
-
-        const result = await State.api.models.generateContent({
-            model: "gemini-2.5-flash", contents: prompt,
-            config: { responseMimeType: "application/json", responseSchema }
         });
-        const parsedResult = JSON.parse(result.text);
-
-        currentAirfreightQuotes = parsedResult.quotes.map((q: any) => ({
-            ...q, carrierType: "Air Carrier", chargeableWeight: details.chargeableWeight,
-            chargeableWeightUnit: "KG", weightBasis: "Chargeable Weight", isSpecialOffer: false,
-            costBreakdown: {
-                baseShippingCost: q.totalCost / (1 + MARKUP_CONFIG.airfreight.standard),
-                fuelSurcharge: 0, estimatedCustomsAndTaxes: 0, optionalInsuranceCost: 0,
-                ourServiceFee: q.totalCost - (q.totalCost / (1 + MARKUP_CONFIG.airfreight.standard))
-            }, serviceProvider: 'Vcanship AI'
-        }));
-
-        const docs: ComplianceDoc[] = parsedResult.complianceReport.requirements.map((r: any) => ({ ...r, id: `doc-${r.title.replace(/\s/g, '-')}`, status: 'pending', file: null, required: true }));
-        setState({ airfreightComplianceDocs: docs });
-
-        renderQuoteAndComplianceStep(parsedResult.complianceReport);
-        goToAirfreightStep(3);
-    } catch (error) {
-        showToast("Failed to get quote and compliance.", "error");
-    } finally {
-        toggleLoading(false);
-    }
-}
-
-function renderQuoteAndComplianceStep(complianceReport: any) {
-    const sidebarContainer = document.getElementById('airfreight-sidebar-container');
-    const controlsContainer = document.getElementById('airfreight-results-controls');
-    
-    if (sidebarContainer) {
-        sidebarContainer.innerHTML = `
-             <div class="results-section">
-                <h3><i class="fa-solid fa-file-shield"></i> Compliance Report</h3>
-                <div class="compliance-report">
-                    <p>${complianceReport.summary}</p>
-                    <ul>${complianceReport.requirements.map((req: any) => `<li><strong>${req.title}</strong></li>`).join('')}</ul>
-                </div>
-             </div>
-             <div class="quote-confirmation-panel">
-                <h4>This is an AI Estimate</h4>
-                <p>An agent will contact you to confirm details and provide a final quote before booking.</p>
-            </div>
-        `;
     }
 
-    if (controlsContainer) {
-         controlsContainer.innerHTML = `
-            <h3>Sort By:</h3>
-            <div class="sort-buttons">
-                <button class="sort-btn active" data-sort="price">Cheapest First</button>
-                <button class="sort-btn" data-sort="speed">Fastest First</button>
-            </div>
-        `;
-    }
-    
-    sortAndRenderAirfreightQuotes('price');
-}
-
-
-function sortAndRenderAirfreightQuotes(sortBy: 'price' | 'speed') {
-    const quotesContainer = document.getElementById('airfreight-quotes-container');
-    if (!quotesContainer) return;
-
-    const sortedQuotes = [...currentAirfreightQuotes];
-    const parseTransit = (time: string) => parseInt(time.split('-')[0]);
-
-    if (sortBy === 'price') {
-        sortedQuotes.sort((a, b) => a.totalCost - b.totalCost);
-    } else {
-        sortedQuotes.sort((a, b) => parseTransit(a.estimatedTransitTime) - parseTransit(b.estimatedTransitTime));
-    }
-    
-    quotesContainer.innerHTML = sortedQuotes.map(q => createQuoteCard(q)).join('');
-
-    document.querySelectorAll('#airfreight-results-controls .sort-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-sort') === sortBy);
-    });
-}
-
-
-function initializeSignaturePad() {
-    canvas = document.getElementById('airfreight-signature-pad') as HTMLCanvasElement;
-    if (!canvas) return;
-    ctx = canvas.getContext('2d')!;
-    ctx.strokeStyle = '#212121';
-    ctx.lineWidth = 2;
-    
-    const startPosition = (e: MouseEvent | TouchEvent) => { painting = true; draw(e); };
-    const finishedPosition = () => { painting = false; ctx.beginPath(); validateAgreement(); };
-    const draw = (e: MouseEvent | TouchEvent) => {
-        if (!painting) return;
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const pos = e instanceof MouseEvent ? e : e.touches[0];
-        ctx.lineTo(pos.clientX - rect.left, pos.clientY - rect.top);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(pos.clientX - rect.left, pos.clientY - rect.top);
-    };
-
-    canvas.addEventListener('mousedown', startPosition);
-    canvas.addEventListener('mouseup', finishedPosition);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('touchstart', startPosition);
-    canvas.addEventListener('touchend', finishedPosition);
-    canvas.addEventListener('touchmove', draw);
-}
-
-function validateAgreement() {
-    const ack = (document.getElementById('airfreight-compliance-ack') as HTMLInputElement).checked;
-    const name = (document.getElementById('airfreight-signer-name') as HTMLInputElement).value.trim();
-    (document.getElementById('airfreight-confirm-booking-btn') as HTMLButtonElement).disabled = !(ack && name && !isCanvasBlank());
-}
-
-function isCanvasBlank() {
-    if (!canvas) return true;
-    return !canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data.some(channel => channel !== 0);
-}
-
-
-function generateAirfreightSummaryPdf() {
-    const { airfreightDetails, airfreightQuote, airfreightBookingId } = State;
-    if (!airfreightDetails || !airfreightQuote || !airfreightBookingId) {
-        showToast('Cannot generate PDF, missing data.', 'error'); return;
-    }
-    const doc = new jsPDF();
-    doc.text('Air Freight Booking Summary', 14, 20);
-    doc.text(`Booking ID: ${airfreightBookingId}`, 14, 28);
-
-    autoTable(doc, {
-        startY: 35,
-        head: [['Detail', 'Information']],
-        body: [
-            ['Route', `${airfreightDetails.originAirport} -> ${airfreightDetails.destAirport}`],
-            ['Cargo', airfreightDetails.cargoDescription],
-            ['Chargeable Weight', `${airfreightDetails.chargeableWeight.toFixed(2)} KG`],
-            ['Carrier', airfreightQuote.carrierName],
-            ['Est. Transit', airfreightQuote.estimatedTransitTime],
-            ['Est. Total Cost', `${State.currentCurrency.symbol}${airfreightQuote.totalCost.toFixed(2)}`]
-        ]
-    });
-
-    const cargoData = airfreightDetails.cargoPieces.map(c => [c.pieces, `${c.length}x${c.width}x${c.height}cm`, `${c.weight}kg`]);
-    autoTable(doc, {
-        startY: (doc as any).lastAutoTable.finalY + 10,
-        head: [['Pieces', 'Dimensions', 'Weight']],
-        body: cargoData
-    });
-    
-    doc.save(`Vcanship_AIR_${airfreightBookingId}.pdf`);
-}
-
-async function suggestHsCodeFromImage(file: File, inputElementId: string) {
-    if (!State.api) { showToast("AI not initialized.", "error"); return; }
-    toggleLoading(true, "Analyzing image for HS code...");
-    try {
-        const base64Data = await blobToBase64(file);
-        const imagePart = { inlineData: { mimeType: file.type, data: base64Data } };
-        const textPart = { text: "Analyze this image of a product and suggest the most appropriate 6-digit Harmonized System (HS) code. Provide only the 6-digit code as a string." };
-        
-        const result = await State.api.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: { parts: [imagePart, textPart] }
-        });
-
-        const hsCode = result.text.replace(/[^0-9]/g, '').slice(0, 6);
-        if (hsCode.length === 6) {
-            const inputEl = document.getElementById(inputElementId) as HTMLInputElement;
-            if(inputEl) inputEl.value = hsCode;
-            showToast(`AI suggested HS Code: ${hsCode}`, "success");
-        } else {
-            throw new Error("Could not extract a valid HS code from the image.");
-        }
-    } catch (error) {
-        console.error("HS code from image error:", error);
-        showToast("Could not determine HS code from image.", "error");
-    } finally {
-        toggleLoading(false);
-    }
-}
-
-
-function attachAirfreightEventListeners() {
-    const page = document.getElementById('page-airfreight');
-    if (!page) return;
-
-    page.querySelector('.back-btn')?.addEventListener('click', () => switchPage('landing'));
-    
-    page.addEventListener('click', e => {
-        const target = e.target as HTMLElement;
-        if (target.closest('.sort-btn')) {
-            sortAndRenderAirfreightQuotes(target.dataset.sort as 'price' | 'speed');
-        }
-        const selectBtn = target.closest<HTMLButtonElement>('.select-quote-btn');
-        if (selectBtn?.dataset.quote) {
-            const quote: Quote = JSON.parse(selectBtn.dataset.quote.replace(/&quot;/g, '"'));
-            setState({ airfreightQuote: quote });
-            document.querySelectorAll('#airfreight-quotes-container .quote-card').forEach(c => c.classList.remove('selected'));
-            selectBtn.closest('.quote-card')?.classList.add('selected');
-            (document.getElementById('airfreight-to-agreement-btn') as HTMLButtonElement).disabled = false;
-        }
-         if (target.closest('#airfreight-hs-image-suggester-btn')) {
-            document.getElementById('airfreight-hs-image-input')?.click();
-        }
-    });
-    
-    // Nav
-    document.getElementById('airfreight-to-dims-btn')?.addEventListener('click', () => goToAirfreightStep(2));
-    document.getElementById('airfreight-back-to-details-btn')?.addEventListener('click', () => goToAirfreightStep(1));
-    document.getElementById('airfreight-to-quote-btn')?.addEventListener('click', handleGetQuote);
-    document.getElementById('airfreight-back-to-dims-btn')?.addEventListener('click', () => goToAirfreightStep(2));
-    document.getElementById('airfreight-to-agreement-btn')?.addEventListener('click', () => {
-        const summaryEl = document.getElementById('airfreight-agreement-summary');
-        if (summaryEl && State.airfreightQuote) {
-             summaryEl.innerHTML = `
-                <div class="review-item"><span>Carrier:</span><strong>${State.airfreightQuote.carrierName}</strong></div>
-                <div class="review-item"><span>Transit Time:</span><strong>~${State.airfreightQuote.estimatedTransitTime}</strong></div>
-                <hr>
-                <div class="review-item total"><span>Est. Total Cost:</span><strong>${State.currentCurrency.symbol}${State.airfreightQuote.totalCost.toFixed(2)}</strong></div>
-            `;
-        }
-        goToAirfreightStep(4);
-    });
-    document.getElementById('airfreight-back-to-compliance-btn')?.addEventListener('click', () => goToAirfreightStep(3));
-    document.getElementById('airfreight-confirm-booking-btn')?.addEventListener('click', () => {
-        const bookingId = `AIR-${Date.now().toString().slice(-6)}`;
-        setState({ airfreightBookingId: bookingId });
-        (document.getElementById('airfreight-booking-id') as HTMLElement).textContent = bookingId;
-        goToAirfreightStep(5);
-    });
-    document.getElementById('airfreight-new-shipment-btn')?.addEventListener('click', startAirfreight);
-    document.getElementById('airfreight-download-pdf-btn')?.addEventListener('click', generateAirfreightSummaryPdf);
-
-    // Cargo pieces
-    document.getElementById('airfreight-add-piece-btn')?.addEventListener('click', addCargoPiece);
-    const cargoList = document.getElementById('airfreight-cargo-list');
-    cargoList?.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.airfreight-remove-piece-btn')) {
-            const index = parseInt((e.target as HTMLElement).closest<HTMLElement>('.airfreight-cargo-item')?.dataset.index || '-1');
-            if (index > -1) {
-                cargoPieces.splice(index, 1);
-                renderCargoPieces();
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (validateCurrentStep()) {
+                saveCurrentStepData();
+                submitAirfreightForm();
             }
-        }
+        });
+    }
+
+    // Cargo management
+    const addPieceBtn = document.getElementById('airfreight-add-piece-btn');
+    if (addPieceBtn) {
+        addPieceBtn.addEventListener('click', showAddCargoModal);
+    }
+
+    // Remove cargo buttons
+    document.querySelectorAll('.remove-cargo-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const index = parseInt(target.dataset.index || '0');
+            formData.cargoPieces.splice(index, 1);
+            renderCurrentView();
+        });
     });
-    cargoList?.addEventListener('change', updateAndRecalculateCargo);
 
-    // Agreement
-    document.getElementById('airfreight-compliance-ack')?.addEventListener('change', validateAgreement);
-    document.getElementById('airfreight-signer-name')?.addEventListener('input', validateAgreement);
-
-    // HS Code Suggester
-    let hsCodeTimeout: number;
-    const descInput = document.getElementById('airfreight-cargo-description') as HTMLInputElement;
+    // HS Code suggestions
     const hsCodeInput = document.getElementById('airfreight-hs-code') as HTMLInputElement;
-    const suggestionsContainer = document.getElementById('airfreight-hs-code-suggestions');
-    descInput?.addEventListener('input', () => {
-        clearTimeout(hsCodeTimeout);
-        if (!suggestionsContainer) return;
-        const query = descInput.value.trim();
-        if (query.length < 5) {
-            suggestionsContainer.classList.remove('active'); return;
-        }
-        hsCodeTimeout = window.setTimeout(async () => {
-            const suggestions = await getHsCodeSuggestions(query);
-            if (suggestions.length > 0) {
-                suggestionsContainer.innerHTML = suggestions.map(s => `<div class="hs-code-suggestion-item" data-code="${s.code}"><strong>${s.code}</strong> - ${s.description}</div>`).join('');
-                suggestionsContainer.classList.add('active');
-                if (hsCodeInput.value === '') hsCodeInput.value = suggestions[0].code;
-            } else {
-                suggestionsContainer.classList.remove('active');
-            }
-        }, 500);
-    });
-    suggestionsContainer?.addEventListener('click', e => {
-        const item = (e.target as HTMLElement).closest<HTMLElement>('.hs-code-suggestion-item');
-        if (item?.dataset.code) {
-            hsCodeInput.value = item.dataset.code;
-            suggestionsContainer.classList.remove('active');
-        }
-    });
+    if (hsCodeInput) {
+        hsCodeInput.addEventListener('input', debounce(suggestHsCode, 300));
+    }
 
-    const hsImageInput = document.getElementById('airfreight-hs-image-input') as HTMLInputElement;
-    hsImageInput?.addEventListener('change', () => {
-        const file = hsImageInput.files?.[0];
-        if (file) {
-            suggestHsCodeFromImage(file, 'airfreight-hs-code');
+    // Airport code formatting
+    const originInput = document.getElementById('airfreight-origin') as HTMLInputElement;
+    const destinationInput = document.getElementById('airfreight-destination') as HTMLInputElement;
+    
+    [originInput, destinationInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.toUpperCase();
+            });
         }
     });
 }
 
-export function startAirfreight() {
-    setState({ currentService: 'airfreight' });
-    resetAirfreightState();
-    cargoPieces = [];
-    renderAirfreightPage();
-    switchPage('airfreight');
-    attachAirfreightEventListeners();
-    goToAirfreightStep(1);
-    addCargoPiece();
+function setupResultsEventListeners() {
+    const backBtn = document.getElementById('airfreight-back-to-form');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            currentView = 'form';
+            renderCurrentView();
+        });
+    }
+}
+
+function setupPaymentEventListeners() {
+    // Payment event listeners
+}
+
+function setupConfirmationEventListeners() {
+    // Confirmation event listeners
+}
+
+function validateCurrentStep(): boolean {
+    switch (currentStep) {
+        case 1:
+            return validateRouteServiceStep();
+        case 2:
+            return validateCargoDetailsStep();
+        case 3:
+            return validateDimensionsStep();
+        case 4:
+            return true; // Review step doesn't need validation
+        default:
+            return false;
+    }
+}
+
+function validateRouteServiceStep(): boolean {
+    let isValid = true;
+    
+    const origin = document.getElementById('airfreight-origin') as HTMLInputElement;
+    const destination = document.getElementById('airfreight-destination') as HTMLInputElement;
+    
+    if (!origin?.value.trim() || origin.value.length !== 3) {
+        showFieldError('airfreight-origin-error', 'Please enter a valid 3-letter IATA airport code');
+        isValid = false;
+    }
+    
+    if (!destination?.value.trim() || destination.value.length !== 3) {
+        showFieldError('airfreight-destination-error', 'Please enter a valid 3-letter IATA airport code');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function validateCargoDetailsStep(): boolean {
+    let isValid = true;
+    
+    const cargoDescription = document.getElementById('airfreight-cargo-description') as HTMLTextAreaElement;
+    
+    if (!cargoDescription?.value.trim()) {
+        showFieldError('airfreight-cargo-description-error', 'Cargo description is required');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function validateDimensionsStep(): boolean {
+    if (formData.cargoPieces.length === 0) {
+        showToast('Please add at least one cargo piece', 'error');
+        return false;
+    }
+    return true;
+}
+
+function saveCurrentStepData() {
+    switch (currentStep) {
+        case 1:
+            saveRouteServiceData();
+            break;
+        case 2:
+            saveCargoDetailsData();
+            break;
+        case 3:
+            // Cargo pieces are saved when they are added/modified
+            break;
+    }
+}
+
+function saveRouteServiceData() {
+    const origin = document.getElementById('airfreight-origin') as HTMLInputElement;
+    const destination = document.getElementById('airfreight-destination') as HTMLInputElement;
+    
+    if (origin) formData.originAirport = origin.value.trim().toUpperCase();
+    if (destination) formData.destinationAirport = destination.value.trim().toUpperCase();
+}
+
+function saveCargoDetailsData() {
+    const cargoDescription = document.getElementById('airfreight-cargo-description') as HTMLTextAreaElement;
+    const hsCode = document.getElementById('airfreight-hs-code') as HTMLInputElement;
+    const specialRequirements = document.getElementById('airfreight-special-requirements') as HTMLTextAreaElement;
+    
+    if (cargoDescription) formData.cargoDescription = cargoDescription.value.trim();
+    if (hsCode) formData.hsCode = hsCode.value.trim();
+    if (specialRequirements) formData.specialRequirements = specialRequirements.value.trim();
+}
+
+function showFieldError(errorId: string, message: string) {
+    const errorElement = document.getElementById(errorId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function showAddCargoModal() {
+    // Simple cargo addition - in a real app this would be a modal
+    const pieces = parseInt(prompt('Number of pieces:') || '1');
+    const length = parseInt(prompt('Length (cm):') || '100');
+    const width = parseInt(prompt('Width (cm):') || '100');
+    const height = parseInt(prompt('Height (cm):') || '100');
+    const weight = parseFloat(prompt('Weight per piece (kg):') || '10');
+    
+    if (pieces > 0 && length > 0 && width > 0 && height > 0 && weight > 0) {
+        formData.cargoPieces.push({
+            id: Date.now(),
+            pieces,
+            length,
+            width,
+            height,
+            weight
+        });
+        renderCurrentView();
+    }
+}
+
+function getTotalVolume(): number {
+    return formData.cargoPieces.reduce((total, piece) => {
+        return total + (piece.length * piece.width * piece.height) / 1000000 * piece.pieces;
+    }, 0);
+}
+
+function getTotalActualWeight(): number {
+    return formData.cargoPieces.reduce((total, piece) => {
+        return total + piece.weight * piece.pieces;
+    }, 0);
+}
+
+function getTotalVolumetricWeight(): number {
+    return formData.cargoPieces.reduce((total, piece) => {
+        return total + ((piece.length * piece.width * piece.height) / 5000) * piece.pieces;
+    }, 0);
+}
+
+function getChargeableWeight(): number {
+    const actualWeight = getTotalActualWeight();
+    const volumetricWeight = getTotalVolumetricWeight();
+    return Math.max(actualWeight, volumetricWeight);
+}
+
+function suggestHsCode() {
+    const input = document.getElementById('airfreight-hs-code') as HTMLInputElement;
+    if (!input || input.value.length < 3) return;
+    
+    // Mock HS code suggestions
+    const suggestions = [
+        '8517.12.00 - Telephones for cellular networks',
+        '8507.60.00 - Lithium-ion batteries',
+        '8471.30.01 - Portable digital automatic data processing machines'
+    ];
+    
+    const suggestionsContainer = document.getElementById('airfreight-hs-code-suggestions');
+    if (suggestionsContainer) {
+        suggestionsContainer.innerHTML = suggestions.map(suggestion =>
+            `<div class="hs-suggestion" data-code="${suggestion.split(' - ')[0]}">${suggestion}</div>`
+        ).join('');
+        
+        suggestionsContainer.querySelectorAll('.hs-suggestion').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                const code = target.dataset.code;
+                if (code && input) {
+                    input.value = code;
+                    suggestionsContainer.innerHTML = '';
+                }
+            });
+        });
+    }
+}
+
+function submitAirfreightForm() {
+    showToast('Getting air freight quotes...', 'info');
+    
+    // Mock quote generation
+    setTimeout(() => {
+        currentView = 'results';
+        renderCurrentView();
+        showToast('Air freight quotes loaded successfully!', 'success');
+    }, 2000);
+}
+
+function debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// --- MAIN EXPORT ---
+export function renderAirfreightPage() {
+    currentView = 'form';
+    currentStep = 1;
+    renderCurrentView();
 }

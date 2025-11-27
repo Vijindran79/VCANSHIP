@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VCanship - Affordable Freight Forwarding & Global Shipping Services</title>
-    <meta name="description"
-        content="Vcanship offers cheap freight forwarding, parcel shipping, container transport, bulk cargo, tankers, and break bulk services. Get instant quotes for international shipping.">
-    <meta name="keywords"
-        content="vcanship, vcan, cheap freight, cheapest freight, freight forwarder, shipping logistics, parcel delivery, container shipping, bulk cargo, tankers, break bulk, 3pl logistics, shiiping, cheep freight, cheepest freight, forwader, forwaders">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="./index.css">
-    <link rel="icon" type="image/svg+xml" href="./logo.svg">
-    <link rel="manifest" href="./manifest.json">
-    <script src="https://js.stripe.com/v3/"></script>
+    <title>VcanShip - OneStop Logistics Platform</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./main.css">
+    <link rel="stylesheet" href="./mobile-desktop-enhancements.css">
+    <link rel="stylesheet" href="./touch-feedback.css">
+    <link rel="stylesheet" href="./secure-trade-ux-enhancements.css">
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -59,7 +60,7 @@
   }
 }
 </script>
-    <link rel="stylesheet" href="/index.css">
+
 </head>
 
 <body>
@@ -131,13 +132,11 @@
                 <!-- Pages will be injected here -->
                 <div id="page-landing" class="page active"></div>
                 <div id="page-parcel" class="page"></div>
-                <div id="page-baggage" class="page"></div>
                 <div id="page-fcl" class="page"></div>
                 <div id="page-lcl" class="page"></div>
                 <div id="page-airfreight" class="page"></div>
                 <div id="page-vehicle" class="page"></div>
                 <div id="page-railway" class="page"></div>
-                <div id="page-inland" class="page"></div>
                 <div id="page-bulk" class="page"></div>
                 <div id="page-rivertug" class="page"></div>
                 <div id="page-warehouse" class="page"></div>
@@ -319,7 +318,8 @@
                                     class="fa-solid fa-arrow-left"></i></button>
                             <h3 data-i18n="auth.welcome_back">Welcome Back!</h3>
                             <p class="modal-desc" data-i18n-html="auth.desc_password_html">Enter your password for
-                                <strong id="password-entry-email"></strong>.</p>
+                                <strong id="password-entry-email"></strong>.
+                            </p>
                             <form id="password-form" novalidate>
                                 <div class="input-wrapper with-icon">
                                     <i class="fa-solid fa-lock input-icon"></i>
@@ -345,7 +345,8 @@
                                     class="fa-solid fa-arrow-left"></i></button>
                             <h3 data-i18n="auth.title_create_account">Create Your Account</h3>
                             <p class="modal-desc" data-i18n-html="auth.desc_create_password_html">Create a password for
-                                <strong id="signup-view-email"></strong>.</p>
+                                <strong id="signup-view-email"></strong>.
+                            </p>
                             <form id="signup-form" novalidate>
                                 <div class="input-wrapper with-icon">
                                     <i class="fa-regular fa-user input-icon"></i>
@@ -527,11 +528,11 @@
 
     <div id="loading-overlay">
         <div class="loading-spinner"></div>
-        <p id="loading-progress-text" data-i18n="loading.default">Please wait...</p>
+        <p id="loading-progress-text" data-i18n="loading.default">Loading...</p>
     </div>
 
     <script type="module" src="./index.tsx"></script>
-    <script type="module" src="/index.tsx"></script>
+
 </body>
 
 </html>

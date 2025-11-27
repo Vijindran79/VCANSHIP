@@ -8,7 +8,7 @@ const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
-// Version: 1.0.2 - Added Firestore and address book functions
+// Version: 1.0.3 - Fixed FCL mock rates and syntax
 
 // --- INITIALIZE SERVICES ---
 const admin = require('firebase-admin');
@@ -588,14 +588,14 @@ function generateFclComplianceReport() {
 
 // Helper function to generate enhanced mock rates
 function generateEnhancedFclMockRates(originPort, destinationPort, containerType, totalWeightTon) {
-  // Base prices by container type
+  // Base prices by container type (Lowered to be more realistic for fallback)
   const basePrices = {
-    '20GP': 2200,
-    '20ST': 2200,
-    '40GP': 3800,
-    '40HC': 4200,
-    '40HQ': 4200,
-    '45HC': 4500,
+    '20GP': 1200,
+    '20ST': 1200,
+    '40GP': 2100,
+    '40HC': 2400,
+    '40HQ': 2400,
+    '45HC': 2800,
   };
 
   const basePrice = basePrices[containerType] || basePrices['20GP'];
@@ -710,7 +710,7 @@ exports.validateAddress = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Address string is required');
   }
 
-  if (!GEOAPIFY_.env.localKEY) {
+  if (!GEOAPIFY_KEY) {
     console.warn('Geoapify API key missing for validation');
     return { valid: true, formatted: address_string, details: {} };
   }

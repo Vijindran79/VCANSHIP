@@ -13,37 +13,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
     },
     plugins: [
-      react(),
-      {
-        name: 'copy-json-files',
-        closeBundle() {
-          // Ensure locales directory exists in dist
-          const distLocalesDir = path.resolve(__dirname, 'dist/locales');
-          if (!existsSync(distLocalesDir)) {
-            mkdirSync(distLocalesDir, { recursive: true });
-          }
-
-          // Copy JSON files
-          const filesToCopy = [
-            { src: 'locales/en.json', dest: 'dist/locales/en.json' },
-            { src: 'locales.json', dest: 'dist/locales.json' },
-            { src: 'languages.json', dest: 'dist/languages.json' },
-          ];
-
-          filesToCopy.forEach(({ src, dest }) => {
-            const srcPath = path.resolve(__dirname, src);
-            const destPath = path.resolve(__dirname, dest);
-            if (existsSync(srcPath)) {
-              try {
-                copyFileSync(srcPath, destPath);
-                console.log(`Copied ${src} to ${dest}`);
-              } catch (error) {
-                console.error(`Failed to copy ${src}:`, error);
-              }
-            }
-          });
-        }
-      }
+      react()
     ],
     define: {
       'process.env.VITE_GEOAPIFY_KEY': JSON.stringify(env.VITE_GEOAPIFY_KEY),
@@ -56,10 +26,29 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html')
+        },
         output: {
-          // Ensure JSON files are copied
+          // Ensure proper asset naming
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name.split('.');
+            const ext = info[info.length - 1];
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+              return `assets/images/[name]-[hash][extname]`;
+            }
+            if (/css/i.test(ext)) {
+              return `assets/css/[name]-[hash][extname]`;
+            }
+            return `assets/[name]-[hash][extname]`;
+          },
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js'
         }
-      }
-    }
+      },
+      assetsDir: 'assets',
+      copyPublicDir: true
+    },
+    publicDir: 'public'
   };
 });

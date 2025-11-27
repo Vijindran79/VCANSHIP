@@ -4,13 +4,11 @@ import { State, setState, type Service, Page } from './state';
 
 // Static imports for all service modules
 import { startParcel } from './parcel';
-import { startBaggage } from './baggage';
 import { startFcl } from './fcl';
 import { startLcl } from './lcl';
 import { startAirfreight } from './airfreight';
 import { startVehicle } from './vehicle';
 import { startRailway } from './railway';
-import { startInland } from './inland';
 import { startBulk } from './bulk';
 import { startRiverTug } from './rivertug';
 import { startWarehouse } from './warehouse';
@@ -35,7 +33,6 @@ import { mountPromotionBanner, unmountPromotionBanner } from './promotions';
 function getServiceModule(service: string): (() => void) | null {
     switch (service) {
         case 'parcel': return startParcel;
-        case 'baggage': return startBaggage;
         case 'fcl': return startFcl;
         case 'lcl': return startLcl;
         case 'airfreight': return startAirfreight;
@@ -46,7 +43,6 @@ function getServiceModule(service: string): (() => void) | null {
         case 'register': return startRegister; // Trade Finance
         case 'service-provider-register': return startServiceProviderRegister;
         case 'railway': return startRailway;
-        case 'inland': return startInland;
         case 'bulk': return startBulk;
         case 'rivertug': return startRiverTug;
         case 'secure-trade': return startSecureTrade;
@@ -60,7 +56,7 @@ function getServiceModule(service: string): (() => void) | null {
  * @returns The render function or null if not a static page.
  */
 function getStaticPageRenderer(page: string): (() => void) | null {
-    switch(page) {
+    switch (page) {
         case 'landing': return renderLandingPage;
         case 'dashboard': return renderDashboard;
         case 'address-book': return renderAddressBook;
@@ -81,7 +77,7 @@ function getStaticPageRenderer(page: string): (() => void) | null {
 export const mountService = async (pageOrService: string) => {
     // Always clear promotional banners when navigating
     unmountPromotionBanner();
-    
+
     // Service provider registration is a public page and doesn't require login
     if (pageOrService === 'service-provider-register') {
         // Fall through to logic
@@ -101,7 +97,7 @@ export const mountService = async (pageOrService: string) => {
             return;
         }
     }
-    
+
     // Handle static/account pages by directly rendering them
     const pageRenderer = getStaticPageRenderer(pageOrService);
     if (pageRenderer) {
@@ -110,14 +106,20 @@ export const mountService = async (pageOrService: string) => {
         switchPage(pageOrService as Page);
         return;
     }
-    
+
     // Handle dynamic service modules
     const serviceModule = getServiceModule(pageOrService);
     if (typeof serviceModule === 'function') {
         try {
-            setState({ currentService: pageOrService as Service });
-            serviceModule();
-            mountPromotionBanner(pageOrService as Service); // Mount the banner for this service
+            // Clear any previous service state before mounting new one
+            setState({ currentService: null, currentPage: null });
+
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                setState({ currentService: pageOrService as Service });
+                serviceModule();
+                mountPromotionBanner(pageOrService as Service); // Mount the banner for this service
+            }, 50);
         } catch (error) {
             console.error(`Failed to load service module for '${pageOrService}':`, error);
             showToast(`Could not load the ${pageOrService} service. Please try again.`, 'error');

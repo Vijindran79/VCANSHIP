@@ -1,4 +1,5 @@
 // ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
+import './main.css';
 import { DOMElements } from './dom';
 import { mountService } from './router';
 // FIX: Import 'showAuthModal' to handle login button clicks from the mobile menu.
@@ -16,7 +17,8 @@ import { unmountPromotionBanner } from './promotions';
 import { initializeSettings } from './settings';
 import { makeDraggable } from './utils';
 import { getChatbotResponse } from './api';
-import { initMobileNav, updateMobileNavVisibility } from './mobile-nav';
+import { initMobileNav, updateMobileNavVisibility } from './mobile-navigation';
+import { initMobileUXEnhancements } from './mobile-ux-enhancements';
 
 // --- Global state for chat ---
 let conversationHistory: { role: 'user' | 'model', text: string }[] = [];
@@ -49,8 +51,8 @@ function applyTheme(theme: 'light' | 'dark') {
 
 function initializeTheme() {
     const savedTheme = localStorage.getItem('vcanship-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = (savedTheme || (prefersDark ? 'dark' : 'light')) as 'light' | 'dark';
+    // Default to light mode instead of system preference
+    const initialTheme = (savedTheme || 'light') as 'light' | 'dark';
     applyTheme(initialTheme);
 
     // Use event delegation on the body for theme switches in header AND mobile menu
@@ -330,17 +332,26 @@ async function initializeCoreApp() {
     initializeMultiFabAndMobileMenu(); // New consolidated FAB and menu handler
     initMobileNav(); // Initialize Deliveroo-style mobile navigation
     updateMobileNavVisibility(); // Set initial visibility based on screen size
+    initMobileUXEnhancements(); // Initialize advanced mobile UX enhancements
     initializeSettings(); // Keep for potential non-mobile settings functionality
     initializeDashboard();
     initializeAccountPages();
     initializePaymentPage();
     initializeChatbot();
+    // CRITICAL FIX: Ensure landing page is rendered on initial load
+    // This prevents empty page on first load and ensures proper routing state
+    // Render landing page on initial load
+    if (State.currentPage === 'landing') {
+        import('./static_pages').then(module => {
+            module.renderLandingPage();
+        });
+    }
 
     // Attach listeners to static links
     document.body.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
         const staticLink = target.closest<HTMLElement>('.static-link');
-        const serviceLink = target.closest<HTMLElement>('.sidebar-btn-service, .service-promo-card, .service-grid-item');
+        const serviceLink = target.closest<HTMLElement>('.sidebar-btn-service, .service-promo-card, .service-grid-item, [data-service]');
 
         if (staticLink?.dataset.page) {
             e.preventDefault();

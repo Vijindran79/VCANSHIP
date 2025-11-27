@@ -1,9 +1,9 @@
 // Vcanship Service Worker - SEO & Performance Optimization
 // Version: 3.0.0 - Phase 3 SEO Foundation
 
-const CACHE_NAME = 'vcanship-v3-seo';
-const STATIC_CACHE_NAME = 'vcanship-static-v3';
-const DYNAMIC_CACHE_NAME = 'vcanship-dynamic-v3';
+const CACHE_NAME = 'vcanship-v3-seo-fix-1';
+const STATIC_CACHE_NAME = 'vcanship-static-v3-fix-1';
+const DYNAMIC_CACHE_NAME = 'vcanship-dynamic-v3-fix-1';
 
 // Critical files for SEO and performance
 const STATIC_FILES = [
@@ -16,20 +16,18 @@ const STATIC_FILES = [
   '/robots.txt',
   '/sitemap.xml',
   '/logo.svg',
-  
+
   // Service landing pages for SEO
   '/parcel-delivery',
-  '/fcl-shipping', 
+  '/fcl-shipping',
   '/lcl-shipping',
   '/air-freight',
   '/vehicle-shipping',
-  '/baggage-delivery',
   '/warehouse-services',
   '/bulk-cargo',
   '/railway-transport',
-  '/inland-transport',
   '/ecommerce-shipping',
-  
+
   // Essential app files
   '/ui.ts',
   '/state.ts',
@@ -50,7 +48,7 @@ const DYNAMIC_URLS = [
 // Install event - cache critical resources
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Vcanship Service Worker v3.0.0');
-  
+
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
@@ -70,15 +68,15 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Vcanship Service Worker v3.0.0');
-  
+
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && 
-                cacheName !== DYNAMIC_CACHE_NAME &&
-                cacheName.startsWith('vcanship-')) {
+            if (cacheName !== STATIC_CACHE_NAME &&
+              cacheName !== DYNAMIC_CACHE_NAME &&
+              cacheName.startsWith('vcanship-')) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -96,12 +94,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
+
   // Skip non-HTTP requests
   if (!request.url.startsWith('http')) {
     return;
   }
-  
+
   // Handle different types of requests for optimal SEO
   if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.includes('/service/')) {
     // HTML pages - stale-while-revalidate for SEO freshness
@@ -126,7 +124,7 @@ async function handleHTMLRequest(request) {
   try {
     const cache = await caches.open(DYNAMIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
-    
+
     // Fetch fresh version in background
     const fetchPromise = fetch(request).then((response) => {
       if (response && response.status === 200) {
@@ -134,7 +132,7 @@ async function handleHTMLRequest(request) {
       }
       return response;
     });
-    
+
     // Return cached version immediately if available, otherwise wait for network
     return cachedResponse || await fetchPromise;
   } catch (error) {
@@ -147,26 +145,26 @@ async function handleHTMLRequest(request) {
 async function handleAPIRequest(request) {
   try {
     const response = await fetch(request);
-    
+
     if (response && response.status === 200) {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       cache.put(request, response.clone());
     }
-    
+
     return response;
   } catch (error) {
     console.log('[SW] API offline, trying cache:', request.url);
     const cache = await caches.open(DYNAMIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
-    
+
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     return new Response(
       JSON.stringify({ error: 'Offline - no cached data available' }),
-      { 
-        status: 503, 
+      {
+        status: 503,
         headers: { 'Content-Type': 'application/json' }
       }
     );
@@ -178,16 +176,16 @@ async function handleStaticRequest(request) {
   try {
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
-    
+
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     const response = await fetch(request);
     if (response && response.status === 200) {
       cache.put(request, response.clone());
     }
-    
+
     return response;
   } catch (error) {
     console.error('[SW] Static request failed:', error);
@@ -200,16 +198,16 @@ async function handleImageRequest(request) {
   try {
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
-    
+
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     const response = await fetch(request);
     if (response && response.status === 200) {
       cache.put(request, response.clone());
     }
-    
+
     return response;
   } catch (error) {
     console.error('[SW] Image request failed:', error);
@@ -225,17 +223,17 @@ async function handleImageRequest(request) {
 async function handleGenericRequest(request) {
   try {
     const response = await fetch(request);
-    
+
     if (response && response.status === 200) {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       cache.put(request, response.clone());
     }
-    
+
     return response;
   } catch (error) {
     const cache = await caches.open(DYNAMIC_CACHE_NAME);
     const cachedResponse = await cache.match(request);
-    
+
     return cachedResponse || await handleOfflineRequest(request);
   }
 }
@@ -243,7 +241,7 @@ async function handleGenericRequest(request) {
 // Offline request handler
 async function handleOfflineRequest(request) {
   const url = new URL(request.url);
-  
+
   // Return appropriate offline page based on request type
   if (url.pathname.endsWith('.html') || url.pathname === '/') {
     return new Response(
@@ -271,15 +269,15 @@ async function handleOfflineRequest(request) {
         </div>
       </body>
       </html>`,
-      { 
-        headers: { 
+      {
+        headers: {
           'Content-Type': 'text/html',
           'Cache-Control': 'no-cache'
         }
       }
     );
   }
-  
+
   return new Response('Offline', { status: 503 });
 }
 
@@ -326,7 +324,7 @@ self.addEventListener('push', (event) => {
         }
       ]
     };
-    
+
     event.waitUntil(
       self.registration.showNotification('Vcanship Update', options)
     );
@@ -336,7 +334,7 @@ self.addEventListener('push', (event) => {
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
+
   if (event.action === 'explore') {
     event.waitUntil(
       clients.openWindow('/')
@@ -349,7 +347,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'CACHE_SEO_PAGE') {
     const { url } = event.data;
     caches.open(DYNAMIC_CACHE_NAME).then((cache) => {

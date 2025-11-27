@@ -164,12 +164,9 @@ async function handleSocialLogin(providerName: 'Google' | 'Apple') {
 
     toggleLoading(true, t('loading.signing_in_with').replace('{provider}', providerName));
     try {
-        const result = await auth.signInWithPopup(provider);
-        if (result.user) {
-            completeLogin(result.user);
-        } else {
-            throw new Error(t('toast.social_signin_failed'));
-        }
+        // Use redirect instead of popup to avoid Cross-Origin-Opener-Policy issues
+        await auth.signInWithRedirect(provider);
+        // Note: The redirect will handle the completion, so we don't need to call completeLogin here
     } catch (error: any) {
         console.error(`${providerName} Sign-In Error:`, error);
         // Handle common errors gracefully
@@ -180,7 +177,6 @@ async function handleSocialLogin(providerName: 'Google' | 'Apple') {
         } else {
             showToast(t('toast.social_signin_failed_provider').replace('{provider}', providerName), 'error');
         }
-    } finally {
         toggleLoading(false);
     }
 }
@@ -386,6 +382,23 @@ export async function handleLogout() {
 export function initializeAuth() {
     // Use a literal string here so we never depend on a translation key
     toggleLoading(true, 'Please wait...');
+    
+    // Handle redirect result for social sign-in
+    auth.getRedirectResult().then((result) => {
+        if (result && result.user) {
+            completeLogin(result.user);
+            closeAuthModal();
+        }
+    }).catch((error) => {
+        console.error('Redirect sign-in error:', error);
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            showToast(t('toast.account_exists'), 'error');
+        } else {
+            showToast(t('toast.social_signin_failed'), 'error');
+        }
+        toggleLoading(false);
+    });
+    
     auth.onAuthStateChanged((user: any) => {
         if (user) {
             const userProfile = { name: user.displayName || user.email!.split('@')[0], email: user.email! };

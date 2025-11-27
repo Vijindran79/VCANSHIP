@@ -37,10 +37,6 @@ function createMobileNavDrawer() {
                         <i class="fa-solid fa-box"></i>
                         <span data-i18n="sidebar.parcel">Send a Parcel</span>
                     </button>
-                    <button class="mobile-nav-item" data-page="baggage">
-                        <i class="fa-solid fa-suitcase-rolling"></i>
-                        <span data-i18n="sidebar.baggage">Baggage Shipping</span>
-                    </button>
                     <button class="mobile-nav-item" data-page="fcl">
                         <i class="fa-solid fa-ship"></i>
                         <span data-i18n="sidebar.fcl">FCL (Full Container)</span>
@@ -59,32 +55,9 @@ function createMobileNavDrawer() {
                     </button>
                 </div>
                 
-                <div class="mobile-nav-section">
-                    <h4 class="mobile-nav-section-title" data-i18n="mobile_menu.specialized">Specialized Services</h4>
-                    <button class="mobile-nav-item" data-page="railway">
-                        <i class="fa-solid fa-train"></i>
-                        <span data-i18n="sidebar.railway">Railway Transport</span>
-                    </button>
-                    <button class="mobile-nav-item" data-page="inland">
-                        <i class="fa-solid fa-truck"></i>
-                        <span data-i18n="sidebar.inland">Inland Transport</span>
-                    </button>
-                    <button class="mobile-nav-item" data-page="bulk">
-                        <i class="fa-solid fa-industry"></i>
-                        <span data-i18n="sidebar.bulk">Bulk Cargo</span>
-                    </button>
-                    <button class="mobile-nav-item" data-page="rivertug">
-                        <i class="fa-solid fa-anchor"></i>
-                        <span data-i18n="sidebar.rivertug">River \u0026 Tug Services</span>
-                    </button>
-                    <button class="mobile-nav-item" data-page="warehouse">
-                        <i class="fa-solid fa-warehouse"></i>
-                        <span data-i18n="sidebar.warehouse">Warehousing</span>
-                    </button>
-                </div>
                 
                 <div class="mobile-nav-section">
-                    <h4 class="mobile-nav-section-title" data-i18n="mobile_menu.tools">Tools \u0026 Resources</h4>
+                    <h4 class="mobile-nav-section-title" data-i18n="mobile_menu.tools">Tools & Resources</h4>
                     <button class="mobile-nav-item" data-page="schedules">
                         <i class="fa-solid fa-calendar-days"></i>
                         <span data-i18n="sidebar.schedules">Shipping Schedules</span>
@@ -97,6 +70,28 @@ function createMobileNavDrawer() {
                         <i class="fa-solid fa-comments"></i>
                         <span data-i18n="fab.chat">Chat with Us</span>
                     </button>
+                <div class="mobile-nav-section">
+                    <h4 class="mobile-nav-section-title" data-i18n="mobile_menu.settings">Settings & Account</h4>
+                    
+                    <button class="mobile-nav-item" id="mobile-theme-toggle">
+                        <i class="fa-solid fa-moon"></i>
+                        <span data-i18n="aria.toggle_theme">Toggle Theme</span>
+                    </button>
+                    
+                    <button class="mobile-nav-item" id="settings-language-btn">
+                        <i class="fa-solid fa-globe"></i>
+                        <span data-i18n="header.language">Language</span>
+                    </button>
+                    
+                    <button class="mobile-nav-item" id="mobile-login-btn">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span data-i18n="header.login">Login</span>
+                    </button>
+                    
+                    <button class="mobile-nav-item hidden" id="mobile-logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span data-i18n="header.logout">Logout</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -105,7 +100,10 @@ function createMobileNavDrawer() {
     `;
 
     // Insert drawer into the page
-    document.body.insertAdjacentHTML('beforeend', drawerHTML);
+    // Check if it already exists to prevent duplicates
+    if (!document.getElementById('mobile-nav-drawer')) {
+        document.body.insertAdjacentHTML('beforeend', drawerHTML);
+    }
 }
 
 function setupBurgerButton() {
@@ -117,7 +115,9 @@ function setupBurgerButton() {
     `;
 
     // Insert burger button
-    document.body.insertAdjacentHTML('beforeend', burgerHTML);
+    if (!document.getElementById('mobile-burger-btn')) {
+        document.body.insertAdjacentHTML('beforeend', burgerHTML);
+    }
 
     // Add click listener
     const burgerBtn = document.getElementById('mobile-burger-btn');
@@ -155,6 +155,38 @@ function setupDrawerInteractions() {
         closeDrawer();
     });
 
+    // Theme Toggle
+    const themeBtn = document.getElementById('mobile-theme-toggle');
+    themeBtn?.addEventListener('click', () => {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        // Update icon
+        const icon = themeBtn.querySelector('i');
+        if (icon) {
+            icon.className = newTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        closeDrawer();
+    });
+
+    // Login Button
+    const loginBtn = document.getElementById('mobile-login-btn');
+    loginBtn?.addEventListener('click', () => {
+        document.getElementById('login-signup-btn')?.click();
+        closeDrawer();
+    });
+
+    // Logout Button
+    const logoutBtn = document.getElementById('mobile-logout-btn');
+    logoutBtn?.addEventListener('click', () => {
+        document.getElementById('logout-btn')?.click();
+        closeDrawer();
+    });
+
     // Swipe to close
     drawer?.addEventListener('touchstart', handleTouchStart, { passive: true });
     drawer?.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -172,6 +204,26 @@ function toggleDrawer() {
 function openDrawer() {
     const drawer = document.getElementById('mobile-nav-drawer');
     const overlay = document.getElementById('mobile-nav-overlay');
+
+    // Update auth buttons visibility
+    const loginBtn = document.getElementById('mobile-login-btn');
+    const logoutBtn = document.getElementById('mobile-logout-btn');
+
+    if (State.isLoggedIn) {
+        loginBtn?.classList.add('hidden');
+        logoutBtn?.classList.remove('hidden');
+    } else {
+        loginBtn?.classList.remove('hidden');
+        logoutBtn?.classList.add('hidden');
+    }
+
+    // Update theme icon
+    const themeBtn = document.getElementById('mobile-theme-toggle');
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const icon = themeBtn?.querySelector('i');
+    if (icon) {
+        icon.className = currentTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
 
     drawer?.classList.add('open');
     overlay?.classList.add('visible');

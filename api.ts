@@ -74,7 +74,7 @@ function handleFirebaseError(error: any, context: string) {
  * @returns A validated address object or null on failure.
  */
 export async function validateAddress(address: string): Promise<any | null> {
-    if (!checkAndDecrementLookup()) return null;
+    // if (!checkAndDecrementLookup()) return null; // Removed quota check for address validation as Parcel is free
 
     try {
         // FIX: Switched to v8 namespaced syntax for calling a Firebase Function.

@@ -63,12 +63,13 @@ export function renderLandingPage() {
 
     page.innerHTML = `
       <section class="landing-hero-v2">
-        <h1 class="hero-title-v2" data-i18n="landing.hero_title">Global Shipping, Intelligently Simplified</h1>
-        <p class="hero-subtitle-v2" data-i18n="landing.hero_subtitle">Vcanship's AI-driven platform relentlessly finds the cheapest global shipping rates for parcels and freight.</p>
+        <div class="hero-content-wrapper">
+            <h1 id="hero-title-dynamic" class="hero-title-v2 fade-in-text">Global Shipping, Intelligently Simplified</h1>
+            <p id="hero-subtitle-dynamic" class="hero-subtitle-v2 fade-in-text">Vcanship's AI-driven platform relentlessly finds the cheapest global shipping rates for parcels and freight.</p>
+        </div>
       </section>
 
       <section class="landing-section services-overview">
-        
         <div class="card parcel-promo-card-large service-promo-card card-glow" data-service="parcel">
             <div class="parcel-promo-logo">
                 <i class="fa-solid fa-truck truck-icon"></i>
@@ -79,18 +80,27 @@ export function renderLandingPage() {
 
         <h2 class="landing-section-title" style="margin-top: 4rem;" data-i18n="landing.other_services_title">Our Other Services</h2>
         <p class="landing-section-subtitle" data-i18n="landing.other_services_subtitle">From a single document to a full container load, we've got you covered.</p>
+        
         <div class="services-overview-grid">
             <div class="service-promo-card card" data-service="airfreight">
-                <i class="fa-solid fa-plane-departure card-icon card-icon-air"></i><h4 data-i18n="landing.air_freight_title">Air Freight</h4><p data-i18n="landing.air_freight_subtitle">Fast and reliable air cargo for time-sensitive shipments.</p>
+                <i class="fa-solid fa-plane-departure card-icon card-icon-air"></i>
+                <h4 data-i18n="landing.air_freight_title">Air Freight</h4>
+                <p data-i18n="landing.air_freight_subtitle">Fast and reliable air cargo for time-sensitive shipments.</p>
             </div>
             <div class="service-promo-card card" data-service="fcl">
-                <i class="fa-solid fa-boxes-stacked card-icon"></i><h4 data-i18n="landing.fcl_title">Sea Freight FCL</h4><p data-i18n="landing.fcl_subtitle">Exclusive use of a full container for your goods.</p>
+                <i class="fa-solid fa-boxes-stacked card-icon"></i>
+                <h4 data-i18n="landing.fcl_title">Sea Freight FCL</h4>
+                <p data-i18n="landing.fcl_subtitle">Exclusive use of a full container for your goods.</p>
             </div>
             <div class="service-promo-card card" data-service="lcl">
-                <i class="fa-solid fa-boxes-packing card-icon"></i><h4 data-i18n="landing.lcl_title">Sea Freight LCL</h4><p data-i18n="landing.lcl_subtitle">Cost-effective shared container space for smaller loads.</p>
+                <i class="fa-solid fa-boxes-packing card-icon"></i>
+                <h4 data-i18n="landing.lcl_title">Sea Freight LCL</h4>
+                <p data-i18n="landing.lcl_subtitle">Cost-effective shared container space for smaller loads.</p>
             </div>
             <div class="service-promo-card card" data-service="ecommerce">
-                <i class="fa-solid fa-store card-icon"></i><h4>${t('landing.ecommerce_title')}</h4><p>${t('landing.ecommerce_subtitle')}</p>
+                <i class="fa-solid fa-store card-icon"></i>
+                <h4>${t('landing.ecommerce_title')}</h4>
+                <p>${t('landing.ecommerce_subtitle')}</p>
             </div>
         </div>
       </section>
@@ -176,6 +186,51 @@ export function renderLandingPage() {
             }, 6000); // 6 seconds
         }, 2000);
     }
+
+    // Start the hero rotation loop
+    startHeroRotation();
+}
+
+let heroRotationInterval: any = null;
+
+function startHeroRotation() {
+    if (heroRotationInterval) clearInterval(heroRotationInterval);
+
+    const messages = [
+        {
+            title: "Send Love, Not Just Parcels",
+            subtitle: "Connect with family across the globe. We deliver your care packages with heart and speed."
+        },
+        {
+            title: "One-Stop Logistics Solution",
+            subtitle: "Parcel, Air Freight, FCL, LCL & More. Your business deserves the best rates and reliability."
+        }
+    ];
+
+    let currentIndex = 0;
+
+    heroRotationInterval = setInterval(() => {
+        const titleEl = document.getElementById('hero-title-dynamic');
+        const subtitleEl = document.getElementById('hero-subtitle-dynamic');
+
+        if (!titleEl || !subtitleEl) return;
+
+        // Fade out
+        titleEl.style.opacity = '0';
+        subtitleEl.style.opacity = '0';
+
+        setTimeout(() => {
+            currentIndex = (currentIndex + 1) % messages.length;
+
+            titleEl.textContent = messages[currentIndex].title;
+            subtitleEl.textContent = messages[currentIndex].subtitle;
+
+            // Fade in
+            titleEl.style.opacity = '1';
+            subtitleEl.style.opacity = '1';
+        }, 500); // Wait for fade out
+
+    }, 4000); // 4 seconds rotation
 }
 
 
@@ -201,62 +256,63 @@ export function renderHelpPage() {
     };
 
     page.innerHTML = `
-        <div class="service-page-header">
-            <h2 data-i18n="help_page.title">Help Center</h2>
-            <p class="subtitle" data-i18n="help_page.subtitle">Find answers to common questions about our services.</p>
-        </div>
-        <div class="help-center-container">
-            <div class="help-search-bar">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="search" id="help-search-input" placeholder="${t('help_page.search_placeholder')}">
-                 <button id="voice-search-btn" aria-label="${t('help_page.voice_search_aria')}">
-                    <i class="fa-solid fa-microphone"></i>
-                </button>
-            </div>
-            
-            <div class="faq-categories">
-                ${categories.map(cat => `
+                                                                                                                                                                                        < div class="service-page-header" >
+                                                                                                                                                                                            <h2 data - i18n="help_page.title" > Help Center </h2>
+                                                                                                                                                                                                < p class="subtitle" data - i18n="help_page.subtitle" > Find answers to common questions about our services.</p>
+                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                    < div class="help-center-container" >
+                                                                                                                                                                                                        <div class="help-search-bar" >
+                                                                                                                                                                                                            <i class="fa-solid fa-magnifying-glass" > </i>
+                                                                                                                                                                                                                < input type = "search" id = "help-search-input" placeholder = "${t('help_page.search_placeholder')}" >
+                                                                                                                                                                                                                    <button id="voice-search-btn" aria - label="${t('help_page.voice_search_aria')}" >
+                                                                                                                                                                                                                        <i class="fa-solid fa-microphone" > </i>
+                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                            </div>
+
+                                                                                                                                                                                                                            < div class="faq-categories" >
+                                                                                                                                                                                                                                ${categories.map(cat => `
                     <button class="faq-category-card" data-category="${cat}">
                         <i class="${categoryIcons[cat]}"></i>
                         <span>${cat}</span>
                     </button>
-                `).join('')}
-            </div>
-            
-            <div id="faq-list" class="card" style="padding: 1rem 2rem;">
-                <!-- FAQs will be rendered here -->
-            </div>
-            
-            <div id="faq-not-found" class="hidden" style="text-align: center; padding: 2rem;">
-                <p data-i18n="help_page.no_results">No results found. Please try different keywords.</p>
-            </div>
+                `).join('')
+        }
+    </div>
 
-            <div class="card contact-support-card">
-                <h3 data-i18n="help_page.still_have_questions">Still have questions?</h3>
-                <p data-i18n="help_page.support_desc">Our support team is ready to help you with any issues.</p>
-                <div class="form-actions" style="justify-content: center; gap: 1rem;">
-                     <a href="tel:+12513166847" class="secondary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem;">
-                        <i class="fa-solid fa-phone"></i>
-                        <span data-i18n="help_page.call_support">Call Support</span>
-                    </a>
-                    <a href="mailto:vg@vcnresources.com" class="main-submit-btn">
-                        <i class="fa-regular fa-envelope"></i>
-                        <span data-i18n="help_page.email_support">Email Support</span>
-                    </a>
+        < div id = "faq-list" class="card" style = "padding: 1rem 2rem;" >
+            <!--FAQs will be rendered here-- >
                 </div>
-                <div class="contact-support-fallback">
-                    <span data-i18n="help_page.copy_email_desc">Or copy our email:</span>
-                    <div class="api-key-display" style="margin-top: 0.5rem; justify-content: center;">
-                        <code id="support-email-text">vg@vcnresources.com</code>
-                        <button class="secondary-btn copy-btn" data-copy-target="#support-email-text">
-                            <i class="fa-regular fa-copy"></i>
-                            <span data-i18n="help_page.copy">Copy</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+
+                < div id = "faq-not-found" class="hidden" style = "text-align: center; padding: 2rem;" >
+                    <p data - i18n="help_page.no_results" > No results found.Please try different keywords.</p>
+                        </div>
+
+                        < div class="card contact-support-card" >
+                            <h3 data - i18n="help_page.still_have_questions" > Still have questions ? </h3>
+                                < p data - i18n="help_page.support_desc" > Our support team is ready to help you with any issues.</p>
+                                    < div class="form-actions" style = "justify-content: center; gap: 1rem;" >
+                                        <a href="tel:+12513166847" class="secondary-btn" style = "text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem;" >
+                                            <i class="fa-solid fa-phone" > </i>
+                                                < span data - i18n="help_page.call_support" > Call Support </span>
+                                                    </a>
+                                                    < a href = "mailto:vg@vcnresources.com" class="main-submit-btn" >
+                                                        <i class="fa-regular fa-envelope" > </i>
+                                                            < span data - i18n="help_page.email_support" > Email Support </span>
+                                                                </a>
+                                                                </div>
+                                                                < div class="contact-support-fallback" >
+                                                                    <span data - i18n="help_page.copy_email_desc" > Or copy our email: </span>
+                                                                        < div class="api-key-display" style = "margin-top: 0.5rem; justify-content: center;" >
+                                                                            <code id="support-email-text" > vg@vcnresources.com</code>
+                                                                                < button class="secondary-btn copy-btn" data - copy - target="#support-email-text" >
+                                                                                    <i class="fa-regular fa-copy" > </i>
+                                                                                        < span data - i18n="help_page.copy" > Copy </span>
+                                                                                            </button>
+                                                                                            </div>
+                                                                                            </div>
+                                                                                            </div>
+                                                                                            </div>
+                                                                                                `;
 
     const searchInput = page.querySelector('#help-search-input') as HTMLInputElement;
     const categoryContainer = page.querySelector('.faq-categories') as HTMLElement;
@@ -286,19 +342,19 @@ export function renderHelpPage() {
             notFoundMessage.classList.remove('hidden');
         } else {
             faqList.innerHTML = filteredFaqs.map((faq: any) => `
-                <div class="faq-item">
-                    <div class="faq-question">${highlight(faq.question, currentSearchTerm)}</div>
-                    <div class="faq-answer">
-                        <p>${highlight(faq.answer, currentSearchTerm)}</p>
-                    </div>
-                </div>
-            `).join('');
+                                                                                            < div class="faq-item" >
+                                                                                                <div class="faq-question" > ${highlight(faq.question, currentSearchTerm)} </div>
+                                                                                                    < div class="faq-answer" >
+                                                                                                        <p>${highlight(faq.answer, currentSearchTerm)} </p>
+                                                                                                            </div>
+                                                                                                            </div>
+                                                                                                                `).join('');
             notFoundMessage.classList.add('hidden');
         }
     }
 
     // Initial display
-    categoryContainer.querySelector(`[data-category="${t('help_page.categories.all')}"]`)?.classList.add('active');
+    categoryContainer.querySelector(`[data - category="${t('help_page.categories.all')}"]`)?.classList.add('active');
     displayFaqs();
 
     // Event Listeners
@@ -419,20 +475,20 @@ export function renderApiHubPage() {
     const page = DOMElements.pageApiHub;
     if (!page) return;
 
-    const mockApiKey = `vcan_live_${'•'.repeat(20)}abcdef123`;
+    const mockApiKey = `vcan_live_${'•'.repeat(20)} abcdef123`;
 
     const jsSnippet = `const apiKey = 'YOUR_API_KEY';
-const quoteData = {
-  origin: { postcode: 'SW1A 0AA', country: 'GB' },
-  destination: { postcode: '90210', country: 'US' },
-  weight_kg: 2.5
-};
+    const quoteData = {
+        origin: { postcode: 'SW1A 0AA', country: 'GB' },
+        destination: { postcode: '90210', country: 'US' },
+        weight_kg: 2.5
+    };
 
-fetch('https://api.vcanship.com/v1/parcel/rates', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': \`Bearer \${apiKey}\`
+    fetch('https://api.vcanship.com/v1/parcel/rates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': \`Bearer \${apiKey}\`
   },
   body: JSON.stringify(quoteData)
 })
@@ -692,5 +748,7 @@ export function initializeStaticPages() {
         tickerBanner.innerHTML = `<div class="ticker-wrapper"><div class="ticker-content">${tickerHtml}</div></div>`;
     }
 
-    renderLandingPage();
+    // CRITICAL FIX: Don't automatically render landing page - let routing handle it
+    // This prevents content mixing when navigating to other pages
+    // renderLandingPage(); // REMOVED - Let routing system handle page rendering
 }
