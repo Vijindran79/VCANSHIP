@@ -1,5 +1,5 @@
-import { t } from './i18n.js';
-import { State, setState } from './state.js';
+import { t } from './i18n';
+import { State, setState } from './state';
 
 // --- UTILITY FUNCTIONS ---
 function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
@@ -737,6 +737,32 @@ function debounce(func: Function, wait: number) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// --- INITIALIZATION ---
+export function startLcl() {
+    setState({ currentService: 'lcl' });
+    
+    // Check if returning from payment
+    const confirmationData = sessionStorage.getItem('vcanship_show_confirmation');
+    if (confirmationData) {
+        try {
+            const data = JSON.parse(confirmationData);
+            if (data.service === 'lcl') {
+                // Restore state for confirmation view
+                setState({ lclQuote: data.quote });
+                sessionStorage.removeItem('vcanship_show_confirmation');
+                currentView = 'confirmation';
+                renderCurrentView();
+                return;
+            }
+        } catch (e) {
+            console.error('Error parsing confirmation data:', e);
+        }
+    }
+    
+    // Default initialization
+    renderLclPage();
 }
 
 // --- MAIN EXPORT ---

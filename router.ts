@@ -4,7 +4,7 @@ import { State, setState, type Service, Page } from './state';
 
 // Static imports for all service modules
 import { startParcel } from './parcel';
-import { startFcl } from './fcl';
+import { startFcl } from './fcl-simple';
 import { startLcl } from './lcl';
 import { startAirfreight } from './airfreight';
 import { startVehicle } from './vehicle';
@@ -118,6 +118,7 @@ export const mountService = async (pageOrService: string) => {
             setTimeout(() => {
                 setState({ currentService: pageOrService as Service });
                 serviceModule();
+                switchPage(pageOrService as Page);
                 mountPromotionBanner(pageOrService as Service); // Mount the banner for this service
             }, 50);
         } catch (error) {

@@ -1,5 +1,6 @@
 // ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import './main.css';
+import './firebase'; // Initialize Firebase
 import { DOMElements } from './dom';
 import { mountService } from './router';
 // FIX: Import 'showAuthModal' to handle login button clicks from the mobile menu.
@@ -17,8 +18,7 @@ import { unmountPromotionBanner } from './promotions';
 import { initializeSettings } from './settings';
 import { makeDraggable } from './utils';
 import { getChatbotResponse } from './api';
-import { initMobileNav, updateMobileNavVisibility } from './mobile-navigation';
-import { initMobileUXEnhancements } from './mobile-ux-enhancements';
+// Removed mobile navigation imports - files don't exist in this version
 
 // --- Global state for chat ---
 let conversationHistory: { role: 'user' | 'model', text: string }[] = [];
@@ -329,10 +329,8 @@ async function initializeCoreApp() {
     // Now that translations are ready, initialize the rest of the app.
     initializeStaticPages();
     initializeSidebar();
-    initializeMultiFabAndMobileMenu(); // New consolidated FAB and menu handler
-    initMobileNav(); // Initialize Deliveroo-style mobile navigation
-    updateMobileNavVisibility(); // Set initial visibility based on screen size
-    initMobileUXEnhancements(); // Initialize advanced mobile UX enhancements
+    // Removed initializeMultiFabAndMobileMenu - function doesn't exist in this version
+    // Removed mobile navigation calls - functions don't exist in this version
     initializeSettings(); // Keep for potential non-mobile settings functionality
     initializeDashboard();
     initializeAccountPages();
@@ -340,12 +338,10 @@ async function initializeCoreApp() {
     initializeChatbot();
     // CRITICAL FIX: Ensure landing page is rendered on initial load
     // This prevents empty page on first load and ensures proper routing state
-    // Render landing page on initial load
-    if (State.currentPage === 'landing') {
-        import('./static_pages').then(module => {
-            module.renderLandingPage();
-        });
-    }
+    // Force render landing page on initial load
+    import('./static_pages').then(module => {
+        module.renderLandingPage();
+    });
 
     // Attach listeners to static links
     document.body.addEventListener('click', (e) => {

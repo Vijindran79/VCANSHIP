@@ -7,9 +7,6 @@ import { Type } from '@google/genai';
 import { t } from './i18n';
 import { attachDynamicPostcodeValidation } from './validation';
 import { MARKUP_CONFIG } from './pricing';
-import { getVCANSHIPBestRates, type UnifiedShippingMethod } from './multi-api-shipping.js';
-import { commissionTracker } from './commission-tracker.js';
-import { renderEnhancedQuoteCard } from './rate-comparison-ui.js';
 
 let allQuotes: Quote[] = [];
 let carriers: string[] = [];
@@ -95,47 +92,9 @@ function renderCurrentView() {
         console.trace('Who called renderCurrentView with confirmation?');
     }
 
-    // CRITICAL FIX: Comprehensive content clearing to prevent mixing
+    // Clear any existing content first
     page.innerHTML = '';
     page.style.opacity = '0';
-    page.style.visibility = 'hidden';
-    page.style.display = 'none';
-    page.style.position = 'absolute';
-    page.style.top = '-9999px';
-    page.style.left = '-9999px';
-    page.style.zIndex = '1';
-    page.style.overflow = 'hidden';
-    page.style.isolation = 'isolate';
-
-    // CRITICAL FIX: Clear ALL other page containers to prevent content bleeding
-    const pageContainer = document.getElementById('pages');
-    if (pageContainer) {
-        const allPages = pageContainer.querySelectorAll('.page') as NodeListOf<HTMLElement>;
-        allPages.forEach(otherPage => {
-            if (otherPage.id !== 'page-parcel') {
-                otherPage.classList.remove('active');
-                otherPage.innerHTML = '';
-                otherPage.style.display = 'none';
-                otherPage.style.visibility = 'hidden';
-                otherPage.style.opacity = '0';
-                otherPage.style.position = 'absolute';
-                otherPage.style.top = '-9999px';
-                otherPage.style.left = '-9999px';
-                otherPage.style.zIndex = '1';
-                otherPage.style.overflow = 'hidden';
-                otherPage.style.isolation = 'isolate';
-            }
-        });
-    }
-
-    // CRITICAL FIX: Ensure this page is properly positioned and visible
-    page.style.position = 'static';
-    page.style.top = 'auto';
-    page.style.left = 'auto';
-    page.style.zIndex = '10';
-    page.style.display = 'block';
-    page.style.visibility = 'visible';
-    page.style.overflow = 'visible';
 
     setTimeout(() => {
         try {
@@ -436,6 +395,11 @@ function renderParcelDetailsStep(): string {
             <div class="field-error" id="item-description-error"></div>
         </div>
 
+        <div class="input-wrapper">
+            <label for="package-weight">
+                Weight (kg) <span class="required">*</span>
+                <i class="fa-solid fa-circle-info tooltip-trigger" data-tooltip="Maximum weight: 1000 kg per parcel"></i>
+            </label>
         <div class="input-wrapper">
             <label for="package-weight">
                 Weight (kg) <span class="required">*</span>
@@ -1082,88 +1046,13 @@ async function handleFormSubmit(e: Event) {
                 throw new Error("Weight is missing or invalid. Please go back and enter a valid weight.");
             }
 
-            // Get quotes from both backend and multi-API system
-            const [backendQuotes, multiApiRates] = await Promise.allSettled([
-                getParcelRatesFromBackend(apiParams),
-                getVCANSHIPBestRates(
-                    {
-                        postcode: formData.senderPostcode,
-                        country: getCountryCode(formData.senderCountry)
-                    },
-                    {
-                        postcode: formData.recipientPostcode,
-                        country: getCountryCode(formData.recipientCountry)
-                    },
-                    {
-                        weight: formData.weight,
-                        length: formData.length,
-                        width: formData.width,
-                        height: formData.height,
-                        value: formData.itemValue
-                    }
-                )
-            ]);
+            const quotes = await getParcelRatesFromBackend(apiParams);
 
-            // Process backend quotes
-            let processedQuotes: Quote[] = [];
-            if (backendQuotes.status === 'fulfilled') {
-                processedQuotes = backendQuotes.value.map(q => ({
-                    ...q,
-                    chargeableWeight: formData.weight,
-                    chargeableWeightUnit: 'kg',
-                }));
-            }
-
-            // Process multi-API rates and convert to Quote format
-            if (multiApiRates.status === 'fulfilled') {
-                const rateComparison = multiApiRates.value;
-                const apiQuotes = rateComparison.allRates.map((rate: UnifiedShippingMethod): Quote => ({
-                    id: `${rate.provider}-${rate.serviceName.replace(/\s+/g, '-')}`,
-                    carrierName: rate.carrierName,
-                    carrierType: rate.serviceName,
-                    totalCost: rate.price,
-                    estimatedTransitTime: rate.estimatedDeliveryDate || 'Standard delivery',
-                    costBreakdown: {
-                        baseShippingCost: rate.price - (rate.commission || 0),
-                        fuelSurcharge: 0,
-                        estimatedCustomsAndTaxes: 0,
-                        optionalInsuranceCost: 0,
-                        ourServiceFee: rate.commission || 0
-                    },
-                    chargeableWeight: formData.weight,
-                    chargeableWeightUnit: 'kg',
-                    // Required Quote properties
-                    weightBasis: 'actual',
-                    isSpecialOffer: rate === rateComparison.cheapest,
-                    serviceProvider: rate.provider,
-                    // Add multi-API specific data as additional properties
-                    isMultiApi: true,
-                    provider: rate.provider,
-                    isCheapest: rate === rateComparison.cheapest,
-                    isFastest: rate === rateComparison.fastest,
-                    isRecommended: rate === rateComparison.recommended
-                } as Quote & {
-                    isMultiApi: boolean;
-                    provider: string;
-                    isCheapest: boolean;
-                    isFastest: boolean;
-                    isRecommended: boolean;
-                }));
-                
-                // Merge with existing quotes, avoiding duplicates
-                const existingCarriers = new Set(processedQuotes.map(q => q.carrierName.toLowerCase()));
-                const newApiQuotes = apiQuotes.filter(q => !existingCarriers.has(q.carrierName.toLowerCase()));
-                processedQuotes = [...processedQuotes, ...newApiQuotes];
-                
-                console.log('💰 Multi-API rates integrated:', {
-                    totalRates: rateComparison.allRates.length,
-                    newRates: newApiQuotes.length,
-                    totalSavings: rateComparison.savings,
-                    totalCommission: rateComparison.totalCommission
-                });
-            }
-
-            allQuotes = processedQuotes;
+            allQuotes = quotes.map(q => ({
+                ...q,
+                chargeableWeight: formData.weight,
+                chargeableWeightUnit: 'kg',
+            }));
 
             // Add extra costs to quotes
             const extraCost = (formData.insurance ? calculateInsuranceCost() : 0) +
@@ -1228,30 +1117,7 @@ function applyAndRenderFilteredQuotes() {
         return;
     }
 
-    // Use enhanced quote cards for multi-API quotes, regular cards for others
-    quotesContainer.innerHTML = filteredQuotes.map((quote, index) => {
-        if ((quote as any).isMultiApi) {
-            // Convert Quote back to UnifiedShippingMethod format for enhanced rendering
-            const extendedQuote = quote as any;
-            const unifiedMethod: UnifiedShippingMethod = {
-                id: extendedQuote.id || `quote-${index}`,
-                provider: extendedQuote.provider,
-                carrierName: quote.carrierName,
-                serviceName: quote.carrierType,
-                price: quote.totalCost,
-                currency: State.currentCurrency.code,
-                estimatedDays: parseInt(quote.estimatedTransitTime.match(/\d+/)?.[0] || '3'),
-                estimatedDeliveryDate: quote.estimatedTransitTime,
-                commission: quote.costBreakdown.ourServiceFee,
-                isCheapest: extendedQuote.isCheapest,
-                isFastest: extendedQuote.isFastest,
-                isRecommended: extendedQuote.isRecommended,
-                originalData: {} // Add empty originalData to satisfy interface
-            };
-            return renderEnhancedQuoteCard(unifiedMethod, index, filteredQuotes.length);
-        }
-        return createDetailedQuoteCard(quote);
-    }).join('');
+    quotesContainer.innerHTML = filteredQuotes.map(createDetailedQuoteCard).join('');
 }
 
 function createDetailedQuoteCard(quote: Quote): string {
@@ -1630,31 +1496,6 @@ function attachResultsListeners() {
 
                     setState({ parcelSelectedQuote: quote });
 
-                    // Track commission for multi-API quotes
-                    if ((quote as any).isMultiApi && quote.costBreakdown.ourServiceFee > 0) {
-                        const unifiedMethod: UnifiedShippingMethod = {
-                            id: (quote as any).id || quote.carrierName,
-                            provider: (quote as any).provider,
-                            carrierName: quote.carrierName,
-                            serviceName: quote.carrierType,
-                            price: quote.totalCost,
-                            currency: State.currentCurrency.code,
-                            estimatedDays: parseInt(quote.estimatedTransitTime.match(/\d+/)?.[0] || '3'),
-                            estimatedDeliveryDate: quote.estimatedTransitTime,
-                            commission: quote.costBreakdown.ourServiceFee,
-                            isCheapest: (quote as any).isCheapest,
-                            isFastest: (quote as any).isFastest,
-                            isRecommended: (quote as any).isRecommended,
-                            originalData: {}
-                        };
-
-                        commissionTracker.recordCommission(unifiedMethod, {
-                            email: formData.senderEmail,
-                            shipmentId: `PAR-${Date.now().toString().slice(-6)}`,
-                            route: `${formData.senderCountry} → ${formData.recipientCountry}`
-                        });
-                    }
-
                     // Prepare payment context for the global payment page
                     const extraCost = (formData.insurance ? calculateInsuranceCost() : 0) +
                         (formData.signatureRequired ? 5.00 : 0) +
@@ -1758,27 +1599,6 @@ function attachConfirmationListeners() {
 // --- INITIALIZATION ---
 export function startParcel() {
     setState({ currentService: 'parcel' });
-
-    // CRITICAL FIX: Clear ALL page containers before starting parcel service
-    const pageContainer = document.getElementById('pages');
-    if (pageContainer) {
-        const allPages = pageContainer.querySelectorAll('.page') as NodeListOf<HTMLElement>;
-        allPages.forEach(page => {
-            if (page.id !== 'page-parcel') {
-                page.classList.remove('active');
-                page.innerHTML = '';
-                page.style.display = 'none';
-                page.style.visibility = 'hidden';
-                page.style.opacity = '0';
-                page.style.position = 'absolute';
-                page.style.top = '-9999px';
-                page.style.left = '-9999px';
-                page.style.zIndex = '1';
-                page.style.overflow = 'hidden';
-                page.style.isolation = 'isolate';
-            }
-        });
-    }
 
     // Check if returning from payment
     const confirmationData = sessionStorage.getItem('vcanship_show_confirmation');
