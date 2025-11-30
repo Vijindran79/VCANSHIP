@@ -1,4 +1,4 @@
-/* premium-theme.css - Clear & Solid UI */
+/* premium-theme.css - Enhanced Dark Mode Contrast */
 
 :root {
     /* Solid Palette - Light Mode */
@@ -9,13 +9,14 @@
     --premium-accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
     --premium-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-    /* Solid Palette - Dark Mode */
-    --premium-bg-dark: #0f172a;
-    --premium-card-bg-dark: #1e293b;
+    /* Solid Palette - Dark Mode - ENHANCED CONTRAST */
+    --premium-bg-dark: #0a0f1e;
+    --premium-card-bg-dark: #1a2332;
     --premium-text-primary-dark: #ffffff;
     --premium-text-secondary-dark: #cbd5e1;
-    --premium-input-bg-dark: #334155;
-    --premium-shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --premium-input-bg-dark: #243447;
+    --premium-shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --premium-border-dark: #2d3f56;
 }
 
 /* --- Global Background & Typography --- */
@@ -81,7 +82,7 @@ body.dark-mode .form-section,
 body.dark-mode .p2g-quote-card,
 body.dark-mode .service-card {
     background: var(--premium-card-bg-dark) !important;
-    border: 1px solid #334155;
+    border: 1px solid var(--premium-border-dark);
     box-shadow: var(--premium-shadow-dark);
 }
 
@@ -121,7 +122,7 @@ body.dark-mode input,
 body.dark-mode textarea,
 body.dark-mode select {
     background: var(--premium-input-bg-dark) !important;
-    border-color: #475569;
+    border-color: var(--premium-border-dark);
     color: var(--premium-text-primary-dark);
 }
 
@@ -183,14 +184,14 @@ body.dark-mode .field-hint {
 }
 
 body.dark-mode .parcel-progress-indicator {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--premium-card-bg-dark);
+    border-color: var(--premium-border-dark);
 }
 
 /* --- Sidebar & Header --- */
 body.dark-mode .sidebar {
-    background: #1e293b !important;
-    border-right: 1px solid #334155;
+    background: var(--premium-card-bg-dark) !important;
+    border-right: 1px solid var(--premium-border-dark);
 }
 
 /* --- Fix Specific Areas --- */
