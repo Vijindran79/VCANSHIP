@@ -207,3 +207,13 @@ i.fa-solid {
 body.dark-mode i.fa-solid {
     color: #60a5fa;
 }
+
+/* CRITICAL: Preserve all existing animations - DO NOT OVERRIDE */
+.truck-icon {
+    animation: inherit !important;
+}
+
+.ticker-content {
+    animation: inherit !important;
+    animation-play-state: running !important;
+}
