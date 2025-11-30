@@ -21,13 +21,17 @@
 /* --- Global Background & Typography --- */
 body {
     background: var(--premium-bg-light) !important;
+    background-image: none !important;
     color: var(--premium-text-primary-light);
     font-family: 'Inter', 'Roboto', sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
-body.dark-mode {
+body.dark-mode,
+html[data-theme="dark"] body {
     background: var(--premium-bg-dark) !important;
+    background-color: var(--premium-bg-dark) !important;
+    background-image: none !important;
     color: var(--premium-text-primary-dark);
 }
 
