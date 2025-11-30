@@ -1,5 +1,6 @@
 import { t } from './i18n';
 import { State, setState } from './state';
+import { switchPage } from './ui';
 
 // --- UTILITY FUNCTIONS ---
 function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
@@ -769,5 +770,6 @@ export function startLcl() {
 export function renderLclPage() {
     currentView = 'form';
     currentStep = 1;
+    switchPage('lcl');
     renderCurrentView();
 }

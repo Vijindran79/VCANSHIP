@@ -4,7 +4,7 @@ import { State, setState, type Service, Page } from './state';
 
 // Static imports for all service modules
 import { startParcel } from './parcel';
-import { startFcl } from './fcl-simple';
+import { startFcl } from './fcl';
 import { startLcl } from './lcl';
 import { startAirfreight } from './airfreight';
 import { startVehicle } from './vehicle';

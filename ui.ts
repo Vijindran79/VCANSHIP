@@ -92,14 +92,27 @@ export const switchPage = (newPage: Page) => {
         return;
     }
 
-    // Simple page switching - just toggle active class
-    // The CSS will handle hiding/showing
+    // BALANCED FIX: Prevent mixing while maintaining smooth UX
     const allPages = pageContainer.querySelectorAll('.page') as NodeListOf<HTMLElement>;
+    
+    // Always clear non-target pages to prevent mixing
     allPages.forEach(page => {
         page.classList.remove('active');
+        if (page !== newPageElement) {
+            page.innerHTML = ''; // Always clear other pages
+            page.style.display = 'none'; // Force hide other pages
+        }
     });
 
+    // Show target page with smooth transition
     newPageElement.classList.add('active');
+    newPageElement.style.display = 'block';
+    
+    // Add smooth fade-in effect
+    newPageElement.style.opacity = '0';
+    setTimeout(() => {
+        newPageElement.style.opacity = '1';
+    }, 10);
 
     setState({ currentPage: newPage });
     updateSidebarActiveState();

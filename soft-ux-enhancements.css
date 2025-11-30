@@ -1,0 +1,191 @@
+/* SOFT UX ENHANCEMENTS FOR ALL SERVICES */
+
+/* Gentle page transitions */
+.page {
+    transition: opacity 0.3s ease-in-out, transform 0.2s ease-out;
+    transform: translateY(0);
+    opacity: 0;
+}
+
+.page.active {
+    opacity: 1 !important;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Smooth service button interactions */
+.sidebar-btn-service {
+    transition: all 0.2s ease-in-out;
+    border-radius: 8px;
+}
+
+.sidebar-btn-service:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-btn-service.active {
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+}
+
+/* Gentle form animations */
+.form-section {
+    transition: all 0.3s ease-in-out;
+    opacity: 1;
+}
+
+.form-section:not(.active) {
+    opacity: 0.7;
+}
+
+/* Smooth progress indicators */
+.progress-step {
+    transition: all 0.4s ease-in-out;
+}
+
+.progress-step.active {
+    transform: scale(1.05);
+}
+
+/* Gentle loading states */
+.loading-overlay {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Soft button interactions */
+button, .btn {
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover, .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Gentle input focus */
+input, select, textarea {
+    transition: all 0.2s ease-in-out;
+}
+
+input:focus, select:focus, textarea:focus {
+    transform: scale(1.01);
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1);
+}
+
+/* Smooth service headers */
+.service-header, .fcl-header, .lcl-header {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Gentle card animations */
+.service-card, .quote-card, .rate-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.service-card:hover, .quote-card:hover, .rate-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Soft modal transitions */
+.modal-overlay {
+    transition: all 0.3s ease-in-out;
+}
+
+.modal-content {
+    transition: transform 0.3s ease-out;
+    transform: scale(0.95);
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+/* Gentle notification animations */
+.toast, .notification {
+    transition: all 0.3s ease-in-out;
+    transform: translateX(100%);
+}
+
+.toast.show, .notification.show {
+    transform: translateX(0);
+}
+
+/* Smooth dropdown animations */
+.dropdown-menu, .autocomplete-suggestions {
+    transition: all 0.2s ease-in-out;
+    transform: translateY(-10px);
+    opacity: 0;
+}
+
+.dropdown-menu.active, .autocomplete-suggestions.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Gentle table animations */
+.results-table tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.results-table tr:hover {
+    background-color: rgba(251, 146, 60, 0.05);
+}
+
+/* Soft accordion animations */
+.faq-item, .accordion-item {
+    transition: all 0.3s ease-in-out;
+}
+
+.faq-answer, .accordion-content {
+    transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+/* Gentle scroll animations */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Soft focus indicators */
+*:focus {
+    outline: 2px solid rgba(251, 146, 60, 0.5);
+    outline-offset: 2px;
+    transition: outline 0.2s ease-in-out;
+}
+
+/* Responsive gentle animations */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Dark theme soft transitions */
+html[data-theme="dark"] .page {
+    transition: opacity 0.3s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+/* Gentle error states */
+.error, .invalid {
+    transition: all 0.2s ease-in-out;
+    animation: gentle-shake 0.3s ease-in-out;
+}
+
+@keyframes gentle-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* Soft success states */
+.success, .valid {
+    transition: all 0.3s ease-in-out;
+    animation: gentle-pulse 0.5s ease-in-out;
+}
+
+@keyframes gentle-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}

@@ -1,5 +1,6 @@
 import { t } from './i18n';
 import { State, setState } from './state';
+import { switchPage } from './ui';
 
 // --- UTILITY FUNCTIONS ---
 function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
@@ -833,5 +834,6 @@ export function startAirfreight() {
 export function renderAirfreightPage() {
     currentView = 'form';
     currentStep = 1;
+    switchPage('airfreight');
     renderCurrentView();
 }

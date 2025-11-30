@@ -123,13 +123,16 @@ function renderFormView(): string {
                 </div>
             </div>
 
-            <!-- Progress Bar -->
+            <!-- Enhanced Progress Bar -->
             <div class="progress-container">
-                <div class="progress-bar">
+                <div class="progress-bar" data-step="${currentStep}">
                     ${Array.from({length: totalSteps}, (_, i) => `
                         <div class="progress-step ${i < currentStep ? 'completed' : i === currentStep - 1 ? 'active' : ''}">
                             <div class="step-number">${i + 1}</div>
-                            <div class="step-label">${getStepLabel(i + 1)}</div>
+                            <div class="step-content">
+                                <div class="step-label">${getStepLabel(i + 1)}</div>
+                                <div class="step-description">${getStepDescription(i + 1)}</div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -220,6 +223,16 @@ function getStepLabel(step: number): string {
         case 2: return 'Quote & Compliance';
         case 3: return 'Agreement';
         case 4: return 'Confirmation';
+        default: return '';
+    }
+}
+
+function getStepDescription(step: number): string {
+    switch (step) {
+        case 1: return 'Enter your cargo and route information';
+        case 2: return 'Get quotes and review compliance requirements';
+        case 3: return 'Review terms and sign shipping agreement';
+        case 4: return 'Booking confirmed and ready to ship';
         default: return '';
     }
 }
@@ -1280,5 +1293,6 @@ export function startFcl() {
 export function renderFclPage() {
     currentView = 'form';
     currentStep = 1;
+    switchPage('fcl');
     renderCurrentView();
 }
