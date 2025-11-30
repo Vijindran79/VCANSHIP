@@ -168,11 +168,11 @@ export function renderLandingPage() {
                 rotator1.textContent = businessSeo[idx1];
                 rotator1.classList.add('visible');
             }, 500); // Wait for fade out
-        }, 4000); // 4 seconds
+        }, 4000); // 4 seconds - AS REQUESTED
     }
 
     if (rotator2) {
-        // Stagger the start
+        // Stagger the start for better visual flow
         setTimeout(() => {
             rotator2.textContent = emotionalSeo[idx2];
             rotator2.classList.add('visible');
@@ -183,8 +183,8 @@ export function renderLandingPage() {
                     rotator2.textContent = emotionalSeo[idx2];
                     rotator2.classList.add('visible');
                 }, 500); // Wait for fade out
-            }, 6000); // 6 seconds
-        }, 2000);
+            }, 4000); // 4 seconds - AS REQUESTED
+        }, 2000); // 2 second delay for staggered start
     }
 
     // Start the hero rotation loop

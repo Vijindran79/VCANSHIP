@@ -1,0 +1,798 @@
+/* =================================================================
+   PROFESSIONAL UX ENHANCEMENTS FOR VCANSHIP
+   Author: Antigravity AI
+   Purpose: Address 8 major UX issues to make the app look professional
+   ================================================================= */
+
+/* ========================================
+   1. PROGRESS INDICATOR STYLING
+   ======================================== */
+
+.parcel-progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2.5rem 0;
+    padding: 1.5rem;
+    background: var(--background-color);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    position: relative;
+}
+
+/* Connecting line between steps */
+.parcel-progress-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: linear-gradient(to right,
+            var(--border-color) 0%,
+            var(--border-color) 50%,
+            var(--light-gray) 100%);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-step-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: var(--background-color);
+    border: 3px solid var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.progress-step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--medium-gray);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* Active step styling */
+.progress-step.active .progress-step-number {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, #ea580c 100%);
+    border-color: var(--primary-orange);
+    color: white;
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.progress-step.active .progress-step-label {
+    color: var(--primary-orange);
+    font-weight: 600;
+}
+
+/* Completed step styling */
+.progress-step.completed .progress-step-number {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    border-color: var(--success-color);
+    color: white;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+}
+
+.progress-step.completed .progress-step-label {
+    color: var(--success-color);
+}
+
+/* Pulse animation for active step */
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 6px 24px rgba(249, 115, 22, 0.6);
+    }
+}
+
+/* ========================================
+   2. FORM FIELD SPACING & ALIGNMENT
+   ======================================== */
+
+.form-section {
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.form-section h3 {
+    margin-bottom: 1.75rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--dark-gray);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-section h3 i {
+    color: var(--primary-orange);
+    font-size: 1.5rem;
+}
+
+.section-description {
+    color: var(--medium-gray);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+    padding-left: 2.25rem;
+    /* Align with h3 content after icon */
+}
+
+.input-wrapper {
+    margin-bottom: 1.75rem;
+    /* Increased from default  */
+}
+
+.input-wrapper label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark-gray);
+    line-height: 1.4;
+}
+
+.required {
+    color: var(--error-color);
+    margin-left: 0.25rem;
+    font-weight: 700;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.825rem;
+    color: var(--medium-gray);
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.input-wrapper input,
+.input-wrapper textarea,
+.input-wrapper select {
+    padding: 0.9rem 1.1rem;
+    /* Increased padding */
+    font-size: 1rem;
+}
+
+/* Form row for multi-column layouts */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   3. TOOLTIP FUNCTIONALITY
+   ======================================== */
+
+.tooltip-trigger {
+    position: relative;
+    cursor: help;
+    color: var(--medium-gray);
+    font-size: 0.875rem;
+    margin-left: 0.35rem;
+    transition: color 0.2s ease;
+}
+
+.tooltip-trigger:hover {
+    color: var(--primary-orange);
+}
+
+/* Tooltip bubble */
+.tooltip-trigger::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: #1F2937;
+    color: white;
+    padding: 0.65rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 250px;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+/* Tooltip arrow */
+.tooltip-trigger::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1F2937;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+.tooltip-trigger:hover::before,
+.tooltip-trigger:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+html[data-theme="dark"] .tooltip-trigger::before {
+    background: #374151;
+    color: #F9FAFB;
+}
+
+html[data-theme="dark"] .tooltip-trigger::after {
+    border-top-color: #374151;
+}
+
+/* ========================================
+   4. BUTTON STYLING IMPROVEMENTS
+   ======================================== */
+
+.main-submit-btn,
+.cta-button {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, #ea580c 100%);
+    border: none;
+    color: white;
+    padding: 0.95rem 1.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.main-submit-btn::before,
+.cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.main-submit-btn:hover,
+.cta-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+}
+
+.main-submit-btn:hover::before,
+.cta-button:hover::before {
+    opacity: 1;
+}
+
+.main-submit-btn:active,
+.cta-button:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.main-submit-btn:disabled,
+.cta-button:disabled {
+    background: var(--medium-gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Secondary button improvements */
+.secondary-btn {
+    background: var(--background-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.85rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.secondary-btn:hover {
+    background: var(--light-gray);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] .secondary-btn:hover {
+    background: var(--border-color);
+}
+
+/* Button with icon spacing */
+.main-submit-btn i,
+.secondary-btn i,
+.cta-button i {
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.main-submit-btn:hover i,
+.secondary-btn:hover i,
+.cta-button:hover i {
+    transform: translateX(3px);
+}
+
+/* ========================================
+   5. CARD/SIDEBAR LAYOUT
+   ======================================== */
+
+.card {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+html[data-theme="dark"] .card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Sidebar specific cards */
+.parcel-form-sidebar .card {
+    margin-bottom: 1.5rem;
+}
+
+.parcel-form-sidebar .card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--dark-gray);
+}
+
+.parcel-form-sidebar .card h3 i {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-orange) 0%, #ea580c 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.support-card {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+    border-color: #FED7AA;
+}
+
+html[data-theme="dark"] .support-card {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+/* ========================================
+   6. LANDING PAGE SERVICE CARDS
+   ======================================== */
+
+.service-card,
+.option-card,
+.service-type-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card::before,
+.option-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-orange) 0%, #ea580c 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover,
+.option-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.service-card:hover::before,
+.option-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Service card icon enhancement */
+.service-card-header i,
+.card-icon {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--primary-orange) 0%, #ea580c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .service-card-header i,
+.option-card:hover .card-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* ========================================
+   7. TYPOGRAPHY HIERARCHY
+   ======================================== */
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.65rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.6rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle,
+.modal-desc {
+    font-size: 1.05rem;
+    color: var(--medium-gray);
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+/* Service page header */
+.service-page-header h2 {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.service-page-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--medium-gray);
+}
+
+.payment-page-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   8. INPUT FIELD STATES
+   ======================================== */
+
+.input-wrapper input,
+.input-wrapper textarea,
+.input-wrapper select {
+    border: 2px solid var(--border-color);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--background-color);
+}
+
+/* Focus state - prominent with glow */
+.input-wrapper input:focus,
+.input-wrapper textarea:focus,
+.input-wrapper select:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15),
+        0 2px 8px rgba(249, 115, 22, 0.1);
+    background: var(--background-color);
+}
+
+/* Hover state */
+.input-wrapper input:hover:not(:focus),
+.input-wrapper textarea:hover:not(:focus),
+.input-wrapper select:hover:not(:focus) {
+    border-color: var(--medium-gray);
+}
+
+/* Error state */
+.input-wrapper input.error,
+.input-wrapper textarea.error,
+.input-wrapper select.error,
+.input-wrapper.error input,
+.input-wrapper.error textarea,
+.input-wrapper.error select {
+    border-color: var(--error-color);
+    background: rgba(239, 68, 68, 0.03);
+}
+
+.input-wrapper input.error:focus,
+.input-wrapper textarea.error:focus,
+.input-wrapper select.error:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15),
+        0 2px 8px rgba(239, 68, 68, 0.1);
+}
+
+.field-error {
+    display: none;
+    color: var(--error-color);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.field-error:not(:empty) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.field-error::before {
+    content: '⚠';
+    font-size: 1rem;
+}
+
+/* Success state */
+.input-wrapper input.success,
+.input-wrapper textarea.success,
+.input-wrapper select.success {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.03);
+}
+
+.input-wrapper input.success:focus,
+.input-wrapper textarea.success:focus,
+.input-wrapper select.success:focus {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15),
+        0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+/* Placeholder styling */
+.input-wrapper input::placeholder,
+.input-wrapper textarea::placeholder {
+    color: #9CA3AF;
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+/* ========================================
+   ADDITIONAL MICRO-INTERACTIONS
+   ======================================== */
+
+/* Smooth page transitions */
+.page {
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Back button enhancement */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-bottom: 1.5rem;
+}
+
+.back-btn:hover {
+    background: var(--light-gray);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateX(-3px);
+}
+
+.back-btn i {
+    transition: transform 0.25s ease;
+}
+
+.back-btn:hover i {
+    transform: translateX(-3px);
+}
+
+/* Review section enhancements */
+.review-section {
+    background: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    border-left: 4px solid var(--primary-orange);
+    transition: all 0.3s ease;
+}
+
+html[data-theme="dark"] .review-section {
+    background: var(--border-color);
+}
+
+.review-section:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.review-section h4 {
+    color: var(--dark-gray);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.review-section h4 i {
+    color: var(--primary-orange);
+}
+
+/* Options grid (for parcel options step) */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.option-card {
+    padding: 1.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.option-card.selected {
+    border-color: var(--primary-orange);
+    background: rgba(249, 115, 22, 0.05);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.option-card:hover {
+    border-color: var(--primary-orange);
+    transform: translateY(-3px);
+}
+
+/* Loading states */
+.loading-spinner {
+    border: 3px solid var(--light-gray);
+    border-top-color: var(--primary-orange);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .parcel-progress-indicator {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1.25rem;
+    }
+
+    .parcel-progress-indicator::before {
+        display: none;
+        /* Hide connecting line on mobile */
+    }
+
+    .progress-step {
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .progress-step-number {
+        width: 42px;
+        height: 42px;
+    }
+
+    .progress-step-label {
+        text-align: left;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.75rem;
+    }
+
+    .tooltip-trigger::before {
+        left: auto;
+        right: 0;
+        transform: translateX(0) scale(0.9);
+    }
+
+    .tooltip-trigger:hover::before {
+        transform: translateX(0) scale(1);
+    }
+}

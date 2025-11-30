@@ -10,10 +10,407 @@ import { renderAddressBook, renderAccountSettings } from './account';
 import { initializeSidebar } from './sidebar';
 
 interface Translations {
-  [key: string]: string | Translations;
+  [key: string]: string | Translations | any[];
 }
 
-let translations: Translations = {};
+// CRITICAL FIX: Inline default English translations to prevent fetch failures on live site.
+const enTranslations: Translations = {
+  "landing": {
+    "hero_title": "Global Shipping, Intelligently Simplified",
+    "hero_subtitle": "Vcanship finds smart routes and competitive rates for your parcels and freight.",
+    "other_services_title": "Our Other Services",
+    "other_services_subtitle": "From a single document to a full container load, we've got you covered.",
+    "fcl_title": "Sea Freight FCL",
+    "fcl_subtitle": "Exclusive use of a full container for your goods.",
+    "lcl_title": "Sea Freight LCL",
+    "lcl_subtitle": "Cost-effective shared container space for smaller loads.",
+    "ecommerce_title": "E-commerce Fulfillment",
+    "ecommerce_subtitle": "Streamlined shipping solutions for online businesses.",
+    "secure_trade_title": "Trade with Confidence. Ship without Surprises.",
+    "seo": {
+      "business": "Fast Global Shipping|Competitive Freight Rates|Reliable Logistics Solutions|Worldwide Delivery Network|Efficient Cargo Management|Real-Time Shipment Tracking|Door-to-Door Delivery Service|Professional Freight Forwarding|International Trade Logistics|Cost-Effective Shipping Solutions",
+      "emotional": "Ship with Confidence|Your Trusted Shipping Partner|Seamless Global Trade|Connecting Markets Worldwide|Simplified Shipping Experience|Delivering Peace of Mind|Your Global Bridge|Making Distance Disappear|We Care About Your Cargo|Together Across Borders"
+    }
+  },
+  "header": {
+    "track": "Track",
+    "loginSignup": "Login / Sign Up"
+  },
+  "footer": {
+    "copyright": "© 2024 Vcanship by Vcan Resources. All Rights Reserved.",
+    "inspectorPortal": "Inspector Portal"
+  },
+  "loading": {
+    "default": "Please wait...",
+    "authenticating": "Authenticating...",
+    "sending_magic_link": "Sending magic link..."
+  },
+  "mobile_menu": {
+    "dashboard": "Dashboard",
+    "address_book": "Address Book",
+    "account_settings": "Account Settings",
+    "logout": "Log Out",
+    "login": "Log In",
+    "services": "Services"
+  },
+  "sidebar": {
+    "services": "Services",
+    "apiHub": "API Hub",
+    "helpCenter": "Help Center",
+    "vehicle": "Vehicle Shipping",
+    "railway": "Railway Freight",
+    "inland": "Inland Transport",
+    "bulk": "Bulk Cargo",
+    "rivertug": "River & Tug",
+    "warehouse": "Warehouse",
+    "schedules": "Schedules",
+    "ecommerce": "E-commerce",
+    "tradeFinance": "Trade Finance",
+    "partner": "Partner Registration"
+  },
+  "modals": {
+    "locale": {
+      "title": "Select Region & Language",
+      "description": "Choose your country and preferred language to customize your experience.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "search_placeholder": "Search countries..."
+    },
+    "usage_limit": {
+      "guest_title": "Usage Limit Reached",
+      "guest_desc": "You've reached the limit for guest users. Please sign up to continue using our services.",
+      "guest_cta": "Sign Up Now",
+      "free_title": "Usage Limit Reached",
+      "free_desc": "You've reached the limit for free tier users. Upgrade to continue using our services.",
+      "free_cta": "Upgrade Now"
+    },
+    "dropoff": {
+      "title": "Nearby Drop-off Locations",
+      "loading": "Finding locations..."
+    },
+    "track": {
+      "title": "Track Your Shipment",
+      "label": "Enter Tracking ID",
+      "placeholder": "e.g., PAR-123456"
+    },
+    "inspector": {
+      "desc": "This area is for authorized personnel only."
+    },
+    "agreement": {
+      "title": "Shipping Agreement",
+      "text": "This is a legally binding agreement... (Full text would go here)",
+      "checkbox_label": "I have read and agree to the terms and conditions.",
+      "download_pdf": "Download PDF",
+      "proceed": "Proceed"
+    },
+    "tracker": {
+      "title": "Vcanship SmartTracker™",
+      "desc": "Our GPS tracking device offers real-time location updates for your peace of mind. Simply place it in your baggage before shipping. (This is a simulated feature for demonstration)."
+    },
+    "prelaunch": {
+      "title": "Coming Soon!",
+      "desc": "This feature is currently in development and will be launching soon. Stay tuned!"
+    },
+    "breakdown": {
+      "title": "Price Breakdown"
+    }
+  },
+  "toast": {
+    "tracking_not_implemented": "Tracking for {id} is not yet implemented.",
+    "pro_coming_soon": "Pro features coming soon!",
+    "invalid_email": "Please enter a valid email address.",
+    "magic_link_sent": "Magic link sent to {email}. Please check your inbox.",
+    "magic_link_failed": "Failed to send magic link. Please try again.",
+    "social_signin_failed": "Social sign-in failed. Please try again.",
+    "signin_cancelled": "Sign-in cancelled.",
+    "account_exists": "An account with this email already exists.",
+    "social_signin_failed_provider": "Sign-in with {provider} failed. Please try again.",
+    "password_required": "Password is required.",
+    "fill_all_fields": "Please fill in all fields.",
+    "password_length": "Password must be at least 6 characters long.",
+    "name_required_signup": "Name is required for sign up.",
+    "resend_email_not_found": "Email not found. Please check and try again.",
+    "email_required_for_signin": "Email is required for sign in.",
+    "magic_link_signin_failed": "Magic link sign-in failed. Please try again.",
+    "magic_link_invalid": "Invalid or expired magic link. Please request a new one.",
+    "address_updated": "Address updated successfully.",
+    "address_added": "Address added successfully.",
+    "address_deleted": "Address deleted successfully.",
+    "settings_saved": "Settings saved successfully."
+  },
+  "lookup_counter": {
+    "guest": "Guest lookups remaining: {count}",
+    "free": "AI lookups remaining: {count}"
+  },
+  "chatbot": {
+    "title": "Vcanship Assistant",
+    "faq_title": "Frequently Asked Questions:",
+    "input_placeholder": "Ask a question...",
+    "error": "Sorry, I encountered an error. Please try again.",
+    "suggestions": {
+      "services": "What services do you offer?",
+      "tracking": "How do I track a package?",
+      "fcl_lcl": "What is the difference between FCL and LCL?",
+      "cheap_shipping": "Can you help me find a cheap shipping option?"
+    }
+  },
+  "fab": {
+    "menu": "Menu",
+    "chat": "Chat"
+  },
+  "auth": {
+    "promo_title": "Unlock a World of Logistics",
+    "promo_desc": "Join Vcanship to access exclusive rates, real-time tracking, and a seamless shipping experience from start to finish.",
+    "title_signin_signup": "Sign In or Create Account",
+    "desc_email": "Enter your email to get started.",
+    "placeholder_email": "Email Address",
+    "continue": "Continue",
+    "or": "OR",
+    "continue_google": "Continue with Google",
+    "continue_apple": "Continue with Apple",
+    "welcome_back": "Welcome Back!",
+    "placeholder_password": "Password",
+    "forgot_password": "Forgot Password?",
+    "signin": "Sign In",
+    "magic_link_instead": "Email me a magic link instead",
+    "title_create_account": "Create Your Account",
+    "placeholder_name": "Full Name",
+    "placeholder_create_password": "Create a password",
+    "create_account": "Create Account",
+    "magic_link_signup": "Sign up with a magic link instead",
+    "check_email": "Check Your Email",
+    "resend_magic_link": "Didn't receive it? Resend link",
+    "back_to_start": "Back to Start",
+    "desc_password_html": "Enter your password for <strong>{email}</strong>.",
+    "desc_create_password_html": "Create a password for <strong>{email}</strong>.",
+    "desc_magic_link_sent_html": "We've sent a secure sign-in link to <strong>{email}</strong>. Click the link to log in."
+  },
+  "help_page": {
+    "title": "Help Center",
+    "subtitle": "Find answers to common questions about our services.",
+    "search_placeholder": "Search for help...",
+    "voice_search_aria": "Voice search",
+    "categories": {
+      "all": "All Categories",
+      "general": "General",
+      "shipping": "Shipping",
+      "booking": "Booking",
+      "billing": "Billing",
+      "account": "Account"
+    },
+    "faqs": [
+      {
+        "category": "General",
+        "question": "What is Vcanship?",
+        "answer": "Vcanship is a global shipping platform that helps you find the best routes and rates for your parcels and freight."
+      },
+      {
+        "category": "Shipping",
+        "question": "How do I track my shipment?",
+        "answer": "You can track your shipment using the tracking number provided. Click the 'Track' button in the header to enter your tracking ID."
+      },
+      {
+        "category": "Booking",
+        "question": "How do I book a shipment?",
+        "answer": "Select a service from the main page, fill in the shipment details, and complete the booking process."
+      },
+      {
+        "category": "Billing",
+        "question": "What payment methods do you accept?",
+        "answer": "We accept various payment methods including credit cards, bank transfers, and digital wallets."
+      },
+      {
+        "category": "Account",
+        "question": "How do I create an account?",
+        "answer": "Click on 'Login / Sign Up' in the header and follow the registration process."
+      }
+    ]
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "card_dashboard": "Dashboard Overview",
+    "card_my_products": "My Products",
+    "card_add_product": "Add Product",
+    "stats_placeholder": "Welcome to your dashboard! Select an option above to get started."
+  },
+  "parcel": {
+    "title": "Send a Parcel",
+    "subtitle": "Complete the form step by step to get the best shipping rates.",
+    "steps": {
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "details": "Parcel Details",
+      "options": "Options",
+      "review": "Review"
+    },
+    "sender": {
+      "title": "Sender Information",
+      "description": "Enter your contact details. This information will be used for the shipping label and tracking updates.",
+      "name": "Full Name",
+      "name_hint": "Required for shipping label",
+      "name_tooltip": "Enter your full name as it should appear on the shipping label",
+      "email": "Email Address",
+      "email_hint": "For tracking notifications",
+      "email_tooltip": "We'll send tracking updates to this email",
+      "phone": "Phone Number",
+      "phone_hint": "Format: +[country code] [number]",
+      "phone_tooltip": "Include country code (e.g., +44 for UK)",
+      "address": "Street Address",
+      "city": "City",
+      "postcode": "Postcode",
+      "postcode_tooltip": "Enter postcode or country code (e.g., GB, US)",
+      "country": "Country"
+    },
+    "recipient": {
+      "title": "Recipient Information",
+      "description": "Enter the recipient's contact details. This information is required for delivery.",
+      "name": "Full Name",
+      "name_hint": "Required for shipping label",
+      "name_tooltip": "Enter the recipient's full name as it should appear on the shipping label",
+      "email": "Email Address",
+      "email_hint": "Optional - for delivery notifications",
+      "email_tooltip": "Optional: Recipient will receive delivery notifications",
+      "phone": "Phone Number",
+      "phone_hint": "Format: +[country code] [number]",
+      "phone_tooltip": "Include country code (e.g., +1 for USA)",
+      "address": "Street Address",
+      "city": "City",
+      "postcode": "Postcode",
+      "postcode_tooltip": "Enter postcode or country code (e.g., US, GB)",
+      "country": "Country"
+    },
+    "details": {
+      "title": "Parcel Details",
+      "description": "Tell us about your parcel to get accurate shipping rates.",
+      "type": "Parcel Type",
+      "type_hint": "This helps us suggest the best shipping options",
+      "type_tooltip": "Select the type that best describes your shipment",
+      "type_document": "Document",
+      "type_envelope": "Envelope",
+      "type_box": "Box",
+      "type_pallet": "Pallet",
+      "type_other": "Other",
+      "item_description": "Item Description",
+      "description_hint": "Required for customs declaration",
+      "description_tooltip": "Brief description of contents (required for customs)",
+      "description_placeholder": "e.g., Electronics, Clothing, Books",
+      "weight": "Weight (kg)",
+      "weight_hint": "Enter weight in kilograms (0.1 - 1000 kg)",
+      "weight_tooltip": "Maximum weight: 1000 kg per parcel",
+      "weight_placeholder": "e.g., 2.5",
+      "dimensions_title": "Dimensions (Optional but Recommended)",
+      "dimensions_hint": "Accurate dimensions help us provide better rates and ensure your parcel fits carrier requirements.",
+      "length": "Length (cm)",
+      "length_tooltip": "Longest side of the parcel",
+      "width": "Width (cm)",
+      "width_tooltip": "Second longest side",
+      "height": "Height (cm)",
+      "height_tooltip": "Shortest side",
+      "value": "Declared Value",
+      "value_hint": "Required for customs declaration and insurance",
+      "value_tooltip": "Value of items for customs and insurance purposes"
+    },
+    "options": {
+      "title": "Additional Options",
+      "description": "Customize your shipment with optional services.",
+      "insurance": "Shipping Insurance",
+      "insurance_description": "Protect your shipment against loss or damage. Coverage up to",
+      "signature": "Signature Required",
+      "signature_description": "Require recipient signature upon delivery for added security.",
+      "signature_price": "+$5.00",
+      "fragile": "Fragile Handling",
+      "fragile_description": "Extra careful handling for fragile items.",
+      "fragile_price": "+$3.00",
+      "instructions": "Delivery Instructions (Optional)",
+      "instructions_tooltip": "Special instructions for the delivery driver",
+      "instructions_placeholder": "e.g., Leave at front door, Ring doorbell twice",
+      "instructions_hint": "Any special delivery instructions"
+    },
+    "review": {
+      "title": "Review Your Details",
+      "description": "Please review all information before proceeding to get quotes.",
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "parcel": "Parcel",
+      "options": "Options",
+      "type": "Type",
+      "weight": "Weight",
+      "dimensions": "Dimensions",
+      "dimensions_not_provided": "Not provided",
+      "value": "Value",
+      "item_description": "Description",
+      "no_options": "No additional options selected",
+      "instructions": "Instructions",
+      "additional_services": "Additional Services",
+      "summary_note": "Shipping rates will be calculated based on your parcel details. Additional service costs will be added to the final quote."
+    },
+    "support": {
+      "title": "Need Help?",
+      "description": "Our support team is here to assist you.",
+      "faq": "View FAQ",
+      "contact": "Contact Support"
+    },
+    "dropoff": {
+      "title": "Find a Drop-off Point",
+      "description": "Enter your postcode to find nearby parcel drop-off locations.",
+      "postcode": "Your Postcode",
+      "postcode_placeholder": "e.g., SW1A 1AA",
+      "postcode_hint": "We'll find the nearest drop-off points",
+      "search": "Search"
+    },
+    "buttons": {
+      "previous": "Previous",
+      "next": "Next",
+      "get_quotes": "Get Quotes",
+      "back_to_services": "Back to Services",
+      "back_to_details": "Back to Details",
+      "back_to_quotes": "Back to Quotes",
+      "select_proceed": "Select & Proceed",
+      "confirm_pay": "Confirm & Pay",
+      "new_shipment": "New Shipment"
+    },
+    "errors": {
+      "name_required": "Name is required",
+      "email_required": "Valid email is required",
+      "email_invalid": "Please enter a valid email",
+      "phone_required": "Phone number is required",
+      "address_required": "Address is required",
+      "city_required": "City is required",
+      "postcode_required": "Postcode is required",
+      "country_required": "Country is required",
+      "type_required": "Please select a parcel type",
+      "description_required": "Item description is required for customs",
+      "weight_invalid": "Weight must be between 0.1 and 1000 kg",
+      "value_invalid": "Declared value must be greater than 0",
+      "postcode_search_required": "Please enter a postcode to search."
+    },
+    "payment": {
+      "title": "Payment Summary",
+      "carrier": "Carrier",
+      "service": "Service",
+      "shipping_cost": "Shipping Cost",
+      "additional_services": "Additional Services",
+      "total": "Total Cost",
+      "simulated": "This is a simulated payment step."
+    },
+    "confirmation": {
+      "title": "Shipment Confirmed!",
+      "message": "Your parcel has been booked. Details have been sent to your email.",
+      "tracking_id": "Your Tracking ID"
+    },
+    "results": {
+      "back": "Back to Details",
+      "filters": "Filter Results",
+      "all": "All",
+      "dropoff": "Drop-off",
+      "collection": "Collection",
+      "couriers": "Couriers",
+      "no_results": "No services match your criteria. Try adjusting the filters."
+    }
+  }
+};
+
+let translations: Translations = enTranslations;
 let currentLanguage = 'en';
 const rtlLanguages = ['ar']; // List of Right-to-Left languages
 
@@ -41,33 +438,33 @@ export function t(key: string): any {
  * with the corresponding translated text.
  */
 export function translatePageAttributes() {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (key) {
-            const translation = t(key);
-            if (typeof translation !== 'string') {
-                console.warn(`Translation for key '${key}' is not a string.`);
-                return;
-            }
-            if (element.hasAttribute('placeholder')) {
-                element.setAttribute('placeholder', translation);
-            } else if (element.hasAttribute('aria-label')) {
-                element.setAttribute('aria-label', translation);
-            } else {
-                element.textContent = translation;
-            }
-        }
-    });
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    if (key) {
+      const translation = t(key);
+      if (typeof translation !== 'string') {
+        console.warn(`Translation for key '${key}' is not a string.`);
+        return;
+      }
+      if (element.hasAttribute('placeholder')) {
+        element.setAttribute('placeholder', translation);
+      } else if (element.hasAttribute('aria-label')) {
+        element.setAttribute('aria-label', translation);
+      } else {
+        element.textContent = translation;
+      }
+    }
+  });
 
-    document.querySelectorAll('[data-i18n-html]').forEach(element => {
-        const key = element.getAttribute('data-i18n-html');
-        if (key) {
-            const translation = t(key);
-            if (typeof translation === 'string') {
-                (element as HTMLElement).innerHTML = translation;
-            }
-        }
-    });
+  document.querySelectorAll('[data-i18n-html]').forEach(element => {
+    const key = element.getAttribute('data-i18n-html');
+    if (key) {
+      const translation = t(key);
+      if (typeof translation === 'string') {
+        (element as HTMLElement).innerHTML = translation;
+      }
+    }
+  });
 }
 
 
@@ -82,12 +479,21 @@ async function loadTranslations(lang: string): Promise<void> {
     // 'th' (Thai) falls back to 'en' (English).
     let langFile = lang;
     if (lang === 'zh-TW') {
-        langFile = 'zh';
+      langFile = 'zh';
     } else if (lang === 'th') {
-        langFile = 'en';
+      langFile = 'en';
     }
 
-    const response = await fetch(`./locales/${langFile}.json`);
+    // CRITICAL FIX: Use inlined translations for English to avoid fetch issues
+    if (langFile === 'en') {
+      translations = enTranslations;
+      currentLanguage = 'en';
+      document.documentElement.lang = 'en';
+      document.documentElement.dir = 'ltr';
+      return;
+    }
+
+    const response = await fetch(`${window.location.origin}/locales/${langFile}.json`);
     if (!response.ok) {
       throw new Error(`Could not load translation file for ${lang}: ${response.status} ${response.statusText}`);
     }
@@ -100,22 +506,22 @@ async function loadTranslations(lang: string): Promise<void> {
     translations = await response.json();
     currentLanguage = lang;
     document.documentElement.lang = lang;
-    
+
     // Set text direction
     if (rtlLanguages.includes(lang)) {
-        document.documentElement.dir = 'rtl';
+      document.documentElement.dir = 'rtl';
     } else {
-        document.documentElement.dir = 'ltr';
+      document.documentElement.dir = 'ltr';
     }
 
   } catch (error) {
     console.error(error);
     // Fallback to English if the selected language fails to load
     if (lang !== 'en') {
-        await loadTranslations('en');
+      await loadTranslations('en');
     } else {
-        // If even English fails, we must throw to be caught by the initializer.
-        throw error;
+      // If even English fails, we must throw to be caught by the initializer.
+      throw error;
     }
   }
 }
@@ -124,7 +530,7 @@ async function loadTranslations(lang: string): Promise<void> {
  * Updates static text elements in the main HTML that are not part of dynamic templates.
  */
 export function updateStaticUIText() {
-    translatePageAttributes();
+  translatePageAttributes();
 }
 
 /**
@@ -133,11 +539,11 @@ export function updateStaticUIText() {
  */
 export async function initializeI18n() {
   try {
-      const savedLanguage = localStorage.getItem('vcanship_language') || 'en';
-      await loadTranslations(savedLanguage);
+    const savedLanguage = localStorage.getItem('vcanship_language') || 'en';
+    await loadTranslations(savedLanguage);
   } catch (error) {
-      console.error("Fatal: Could not load critical translation files. UI text may not appear correctly.", error);
-      // The app will continue, but with untranslated keys.
+    console.error("Fatal: Could not load critical translation files. UI text may not appear correctly.", error);
+    // The app will continue, but with untranslated keys.
   }
 
   updateStaticUIText();
@@ -146,10 +552,10 @@ export async function initializeI18n() {
     const detail = (e as CustomEvent).detail;
     if (detail.language && detail.language !== currentLanguage) {
       await loadTranslations(detail.language);
-      
+
       // Re-render all static and dynamic parts of the UI
       updateStaticUIText();
-      initializeSidebar(); 
+      initializeSidebar();
 
       // Re-render the current page's content to apply new translations seamlessly
       const currentPage = State.currentPage;
