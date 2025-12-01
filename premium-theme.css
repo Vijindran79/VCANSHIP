@@ -199,16 +199,17 @@ body.dark-mode .sidebar {
     box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
 }
 
-/* Make icons pop */
-i.fa-solid {
-    color: #3b82f6;
-}
+--premium-text-primary-light: #0f172a;
+--premium-text-secondary-light: #475569;
+--premium-accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+--premium-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
 
 /* Solid Palette - Dark Mode - ENHANCED CONTRAST */
 --premium-bg-dark: #0a0f1e;
 --premium-card-bg-dark: #1a2332;
 --premium-text-primary-dark: #ffffff;
---premium-text-secondary-dark: #cbd5e1;
+--premium-text-secondary-dark: #e2e8f0;
+/* Lighter gray for better visibility */
 --premium-input-bg-dark: #243447;
 --premium-shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.5);
 --premium-border-dark: #2d3f56;
@@ -228,6 +229,26 @@ html[data-theme="dark"] body {
     background: var(--premium-bg-dark) !important;
     background-color: var(--premium-bg-dark) !important;
     background-image: none !important;
+    color: var(--premium-text-primary-dark);
+}
+
+/* Ensure all text in dark mode is visible */
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode li,
+body.dark-mode div {
+    color: var(--premium-text-secondary-dark);
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode label,
+body.dark-mode strong,
+body.dark-mode b {
     color: var(--premium-text-primary-dark);
 }
 
@@ -279,6 +300,13 @@ body.dark-mode .service-card {
     background: var(--premium-card-bg-dark) !important;
     border: 1px solid var(--premium-border-dark);
     box-shadow: var(--premium-shadow-dark);
+}
+
+/* Ensure text inside cards is visible */
+body.dark-mode .card p,
+body.dark-mode .form-section p,
+body.dark-mode .service-card p {
+    color: var(--premium-text-secondary-dark) !important;
 }
 
 /* Hover Lift Effect */
@@ -362,6 +390,8 @@ body.dark-mode .field-hint {
     font-weight: 600;
     letter-spacing: 0.5px;
     transition: all 0.2s ease;
+    color: #ffffff !important;
+    /* Ensure button text is white */
 }
 
 .main-submit-btn:hover,
