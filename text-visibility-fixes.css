@@ -1,256 +1,145 @@
-/* text-visibility-fixes.css - AGGRESSIVE Text Contrast Improvements */
+/* text-visibility-fixes.css - SOFT & TARGETED Improvements */
 
 /* ========================================
-   GLOBAL DARK MODE - MAXIMUM CONTRAST
+   SOFT TEXT HIGHLIGHTING (User Requested)
    ======================================== */
 
-body.dark-mode,
-html[data-theme="dark"] body {
-    color: #ffffff !important;
-}
-
-/* ALL text elements in dark mode - FORCE high contrast */
-body.dark-mode p,
-body.dark-mode span,
-body.dark-mode div,
-body.dark-mode li,
-body.dark-mode a,
-body.dark-mode label,
+/* Add subtle text shadow to make white text pop on any background */
 body.dark-mode h1,
 body.dark-mode h2,
 body.dark-mode h3,
 body.dark-mode h4,
 body.dark-mode h5,
-body.dark-mode h6 {
-    color: #ffffff !important;
-    opacity: 1 !important;
+body.dark-mode h6,
+body.dark-mode p,
+body.dark-mode li,
+body.dark-mode span,
+body.dark-mode label {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    /* "Highlight" effect */
 }
 
-/* Secondary text in dark mode - still very visible */
+/* Light mode text shadow for better definition */
+body h1,
+body h2,
+body h3 {
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* ========================================
+   TARGETED CONTRAST IMPROVEMENTS
+   ======================================== */
+
+/* Dark Mode - Brighten text without breaking theme */
+body.dark-mode {
+    color: #f3f4f6;
+    /* Off-white, easier on eyes than pure white */
+}
+
+body.dark-mode .card,
+body.dark-mode .service-card,
+body.dark-mode .form-section {
+    color: #f3f4f6;
+}
+
+/* Secondary text - make it readable but distinct */
 body.dark-mode .secondary-text,
 body.dark-mode .subtitle,
 body.dark-mode .description,
-body.dark-mode small {
-    color: #e5e7eb !important;
-    opacity: 1 !important;
+body.dark-mode small,
+body.dark-mode .field-hint {
+    color: #d1d5db !important;
+    /* Light gray */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
-/* Form elements in dark mode */
+/* ========================================
+   INPUT FIELDS - CRITICAL FOR READABILITY
+   ======================================== */
+
+/* Ensure inputs are clearly visible */
 body.dark-mode input,
 body.dark-mode textarea,
-body.dark-mode select,
-body.dark-mode option {
+body.dark-mode select {
+    background-color: #1f2937 !important;
+    /* Dark gray background */
     color: #ffffff !important;
+    border: 1px solid #4b5563 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-body.dark-mode input::placeholder,
-body.dark-mode textarea::placeholder {
+body.dark-mode input::placeholder {
     color: #9ca3af !important;
+    /* Visible placeholder */
 }
 
-/* Links in dark mode */
+/* Light mode inputs */
+input,
+textarea,
+select {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* ========================================
+   LINKS & BUTTONS
+   ======================================== */
+
+/* Links - High contrast blue */
 body.dark-mode a {
-    color: #60a5fa !important;
+    color: #60a5fa;
+    text-decoration: none;
 }
 
 body.dark-mode a:hover {
-    color: #93c5fd !important;
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+/* Buttons - Ensure text is white */
+.btn,
+button,
+.main-submit-btn {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* ========================================
-   GLOBAL LIGHT MODE - MAXIMUM CONTRAST
-   ======================================== */
-
-body,
-html {
-    color: #111827 !important;
-}
-
-/* ALL text elements in light mode - FORCE high contrast */
-p,
-span,
-div,
-li,
-a,
-label,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    color: #111827 !important;
-}
-
-/* Secondary text in light mode - still very visible */
-.secondary-text,
-.subtitle,
-.description,
-small {
-    color: #374151 !important;
-}
-
-/* Form elements in light mode */
-input,
-textarea,
-select,
-option {
-    color: #111827 !important;
-}
-
-input::placeholder,
-textarea::placeholder {
-    color: #6b7280 !important;
-}
-
-/* Links in light mode */
-a {
-    color: #2563eb !important;
-}
-
-a:hover {
-    color: #1d4ed8 !important;
-}
-
-/* ========================================
-   SPECIFIC OVERRIDES - CRITICAL AREAS
+   SPECIFIC COMPONENT FIXES
    ======================================== */
 
 /* Hero Section */
 .hero-title,
-.hero-subtitle,
-.hero-description {
-    color: inherit !important;
-}
-
-body.dark-mode .hero-title,
-body.dark-mode .hero-subtitle,
-body.dark-mode .hero-description {
-    color: #ffffff !important;
-}
-
-/* Cards */
-.card,
-.card p,
-.card span,
-.card div {
-    color: inherit !important;
-}
-
-body.dark-mode .card,
-body.dark-mode .card p,
-body.dark-mode .card span,
-body.dark-mode .card div {
-    color: #ffffff !important;
-}
-
-/* Service Cards */
-.service-card p,
-.service-card h3,
-.service-card span {
-    color: inherit !important;
-}
-
-body.dark-mode .service-card p,
-body.dark-mode .service-card h3,
-body.dark-mode .service-card span {
-    color: #ffffff !important;
-}
-
-/* Form Labels and Hints */
-.field-label,
-.field-hint,
-.help-text {
-    color: inherit !important;
-}
-
-body.dark-mode .field-label,
-body.dark-mode .field-hint,
-body.dark-mode .help-text {
-    color: #e5e7eb !important;
+.hero-subtitle {
+    color: inherit;
+    /* Let theme handle it */
 }
 
 /* Footer */
-footer,
-footer p,
-footer a,
-footer span {
-    color: inherit !important;
+body.dark-mode footer {
+    background-color: #111827;
+    /* Ensure dark background */
+    color: #d1d5db;
 }
 
-body.dark-mode footer,
-body.dark-mode footer p,
-body.dark-mode footer a,
-body.dark-mode footer span {
-    color: #e5e7eb !important;
+body.dark-mode footer a {
+    color: #9ca3af;
 }
 
-/* Buttons - keep their own colors but ensure text is visible */
-button,
-.btn,
-.main-submit-btn {
-    color: #ffffff !important;
-}
-
-/* Tables */
-table,
-th,
-td {
-    color: inherit !important;
-}
-
-body.dark-mode table,
-body.dark-mode th,
-body.dark-mode td {
-    color: #ffffff !important;
-}
-
-/* Lists */
-ul,
-ol,
-li {
-    color: inherit !important;
-}
-
-body.dark-mode ul,
-body.dark-mode ol,
-body.dark-mode li {
-    color: #ffffff !important;
+body.dark-mode footer a:hover {
+    color: #ffffff;
 }
 
 /* ========================================
-   EXCEPTIONS - Elements that should keep their colors
+   "HIGHLIGHT" BACKGROUNDS (Optional)
    ======================================== */
-
-/* Icons - don't force color */
-i.fa-solid,
-i.fas,
-i.far,
-.icon {
-    color: inherit;
-}
-
-/* Badges and status indicators */
-.badge,
-.status,
-.tag {
-    color: inherit;
-}
-
-/* ========================================
-   ACCESSIBILITY - Ensure minimum contrast
-   ======================================== */
-
-/* Remove any transparency that might cause blending */
-body.dark-mode * {
-    opacity: 1 !important;
-}
-
-/* Ensure text is never invisible */
-body.dark-mode *:not(button):not(.btn) {
-    text-shadow: none !important;
-}
-
-body *:not(button):not(.btn) {
-    text-shadow: none !important;
-}
+/* If text is still hard to read, add subtle background to text blocks */
+/* 
+.hero-description, 
+.section-description {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+} 
+*/
