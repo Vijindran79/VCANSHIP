@@ -143,7 +143,7 @@ function renderCurrentView() {
 function renderFormView(): string {
     return `
     <button class="back-btn static-link" data-page="landing"><i class="fa-solid fa-arrow-left"></i> Back to Services</button>
-    <div class="service-page-header" style="margin-bottom: 2rem;">
+    <div class="service-page-header">
         <h2>${t('parcel.title')}</h2>
         <p class="subtitle">${t('parcel.subtitle')}</p>
     </div>
@@ -163,7 +163,7 @@ function renderFormView(): string {
             <form id="parcel-details-form" novalidate>
                 ${renderStepContent()}
 
-                <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                <div class="form-actions">
                     ${currentStep > 1 ? `<button type="button" id="parcel-prev-btn" class="secondary-btn"><i class="fa-solid fa-arrow-left"></i> ${t('parcel.buttons.previous')}</button>` : '<div></div>'}
                     ${currentStep < totalSteps ? `<button type="button" id="parcel-next-btn" class="main-submit-btn">${t('parcel.buttons.next')}: ${getStepLabel(currentStep + 1)} <i class="fa-solid fa-arrow-right"></i></button>` : `<button type="submit" class="main-submit-btn">${t('parcel.buttons.get_quotes')} <i class="fa-solid fa-search"></i></button>`}
                 </div>
@@ -171,36 +171,46 @@ function renderFormView(): string {
         </div>
 
         <aside class="parcel-form-sidebar">
-            <!-- Support Card -->
-            <div class="card support-card" style="margin-bottom: 1.5rem;">
-                <h3><i class="fa-solid fa-circle-question"></i> ${t('parcel.support.title')}</h3>
-                <p class="helper-text">${t('parcel.support.description')}</p>
-                <div class="support-actions">
-                    <button class="secondary-btn" id="parcel-help-btn" style="width: 100%; margin-bottom: 0.5rem;">
-                        <i class="fa-solid fa-book"></i> ${t('parcel.support.faq')}
-                    </button>
-                    <button class="secondary-btn" id="parcel-contact-btn" style="width: 100%;">
-                        <i class="fa-solid fa-envelope"></i> ${t('parcel.support.contact')}
-                    </button>
+            <!-- Collapsible Support Section -->
+            <div class="collapsible-section" id="support-section">
+                <div class="collapsible-header">
+                    <h3><i class="fa-solid fa-circle-question"></i> ${t('parcel.support.title')}</h3>
+                    <div class="collapsible-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <p class="helper-text">${t('parcel.support.description')}</p>
+                        <button class="secondary-btn" id="parcel-help-btn" style="width: 100%; margin-bottom: 0.5rem;">
+                            <i class="fa-solid fa-book"></i> ${t('parcel.support.faq')}
+                        </button>
+                        <button class="secondary-btn" id="parcel-contact-btn" style="width: 100%;">
+                            <i class="fa-solid fa-envelope"></i> ${t('parcel.support.contact')}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Drop-off Points Card -->
-            <div class="card">
-                <h3><i class="fa-solid fa-location-dot"></i> ${t('parcel.dropoff.title')}</h3>
-                <p class="helper-text" style="margin-bottom: 1rem;">${t('parcel.dropoff.description')}</p>
-                <form id="parcel-dropoff-search-form">
-                    <div class="input-wrapper">
-                        <label for="postcode-search">${t('parcel.dropoff.postcode')}</label>
-                        <input type="text" id="postcode-search" placeholder="${t('parcel.dropoff.postcode_placeholder')}">
-                        <small class="field-hint">${t('parcel.dropoff.postcode_hint')}</small>
+            <!-- Collapsible Drop-off Points Section -->
+            <div class="collapsible-section" id="dropoff-section">
+                <div class="collapsible-header">
+                    <h3><i class="fa-solid fa-location-dot"></i> ${t('parcel.dropoff.title')}</h3>
+                    <div class="collapsible-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <p class="helper-text" style="margin-bottom: 1rem;">${t('parcel.dropoff.description')}</p>
+                        <form id="parcel-dropoff-search-form">
+                            <div class="input-wrapper">
+                                <label for="postcode-search">${t('parcel.dropoff.postcode')}</label>
+                                <input type="text" id="postcode-search" placeholder="${t('parcel.dropoff.postcode_placeholder')}">
+                                <small class="field-hint">${t('parcel.dropoff.postcode_hint')}</small>
+                            </div>
+                            <button type="submit" class="secondary-btn" style="width: 100%; margin-top: 0.75rem;">
+                                <i class="fa-solid fa-magnifying-glass-location"></i> ${t('parcel.dropoff.search')}
+                            </button>
+                        </form>
                     </div>
-                    <div class="form-actions" style="margin-top: 1rem; justify-content: flex-start;">
-                        <button type="submit" class="secondary-btn">
-                            <i class="fa-solid fa-magnifying-glass-location"></i> ${t('parcel.dropoff.search')}
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </aside>
     </div>
@@ -1291,6 +1301,14 @@ function attachFormListeners() {
         }
     });
 
+    // Collapsible sections
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const section = header.closest('.collapsible-section');
+            section?.classList.toggle('expanded');
+        });
+    });
+
     // Option cards toggle
     document.querySelectorAll('.option-card').forEach(card => {
         card.addEventListener('click', (e) => {
@@ -1307,7 +1325,6 @@ function attachFormListeners() {
         trigger.addEventListener('mouseenter', (e) => {
             const tooltip = trigger.getAttribute('data-tooltip');
             if (tooltip) {
-                // Simple tooltip implementation
                 const tooltipEl = document.createElement('div');
                 tooltipEl.className = 'tooltip';
                 tooltipEl.textContent = tooltip;
